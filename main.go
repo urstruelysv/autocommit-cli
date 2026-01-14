@@ -179,6 +179,7 @@ func main() {
 		if commitCount > 0 && !*noPush {
 			pushChanges()
 		}
+		// Another temporary fix for testing multi-group commits
 	} else {
 		fmt.Println("\nNo changes to commit. Exiting.")
 	}
