@@ -75,7 +75,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ### Current (Go MVP)
 
-*   **Project Structure:** Refactored into `cmd/autocommit` and `internal/` packages (`git`, `classify`, `history`).
+*   **Project Structure:** Refactored into `cmd/autocommit-cli` and `internal/` packages (`git`, `classify`, `history`).
 *   **Change Detection:** Automatically detects staged and unstaged changes in a Git repository.
 *   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit.
 *   **Basic Commit Message Generation:** Generates conventional commit messages (e.g., `fix: apply automatic fixes`) for each logical group, now incorporating module scopes.
@@ -100,11 +100,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   Go (version 1.18 or higher recommended)
 *   Git (installed and configured)
 
-### Running from Source (Development)
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-repo/autocommit-ai.git # Replace with actual repo URL
+    git clone https://github.com/urstruelysv/autocommit-cli.git # Replace with actual repo URL
     cd autocommit-ai
     ```
 2.  **Run the application:**
@@ -121,7 +117,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
     ```
 2.  **Build the executable:**
     ```bash
-    go build -o autocommit cmd/autocommit/main.go
+    go build -o autocommit cmd/autocommit-cli/main.go
     ```
 3.  **Move to your PATH (optional):**
     ```bash
@@ -138,9 +134,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ## CLI Usage
 
-When running from source:
-```bash
-go run cmd/autocommit/main.go [flags]
+go run cmd/autocommit-cli/main.go [flags]
 ```
 
 When using a built executable:
