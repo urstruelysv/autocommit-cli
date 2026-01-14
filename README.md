@@ -168,4 +168,3 @@ The project is currently in active development. The core MVP features (change de
 *   Semantic version automation
 
 ---
-sai vamshi ---
