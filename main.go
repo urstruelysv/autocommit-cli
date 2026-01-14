@@ -3,7 +3,29 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os/exec"
+	"strings"
 )
+
+func detectChanges() (string, error) {
+	fmt.Println("Detecting changes...")
+	cmd := exec.Command("git", "status", "--porcelain")
+	output, err := cmd.Output()
+	if err != nil {
+		log.Printf("Error detecting changes: %v\n", err)
+		return "", err
+	}
+
+	changes := strings.TrimSpace(string(output))
+	if changes != "" {
+		fmt.Println("Found changes:")
+		fmt.Println(changes)
+	} else {
+		fmt.Println("No changes found.")
+	}
+	return changes, nil
+}
 
 func main() {
 	// Define flags
@@ -35,5 +57,6 @@ func main() {
 		fmt.Println("- Verbose mode enabled.")
 	}
 
-	fmt.Println("\nCore logic not yet implemented.")
+	fmt.Println("\n--- Change Detection ---")
+	detectChanges()
 }
