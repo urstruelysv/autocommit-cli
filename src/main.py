@@ -1,5 +1,7 @@
 import argparse
 import subprocess
+import os
+from collections import Counter
 
 def detect_changes():
     """
@@ -28,12 +30,59 @@ def detect_changes():
         print("Error: 'git' command not found. Is Git installed and in your PATH?")
         return None
 
-def generate_commit_message():
+def generate_commit_message(changes):
     """
-    Generates a basic commit message.
+    Generates a commit message based on change classification.
     """
     print("\n--- Commit Message Generation ---")
-    message = "chore: automatic commit of all changes"
+    
+    change_types = []
+    file_paths = [line.split()[-1] for line in changes.splitlines()]
+
+    for file_path in file_paths:
+        if "tests/" in file_path or "test_" in file_path:
+            change_types.append("test")
+            continue
+        
+        if file_path.endswith(".md"):
+            change_types.append("docs")
+            continue
+
+        try:
+            diff_result = subprocess.run(
+                ["git", "diff", "--", file_path],
+                capture_output=True, text=True, check=True
+            )
+            diff = diff_result.stdout.lower()
+
+            if "fix" in diff or "bug" in diff:
+                change_types.append("fix")
+            elif "add" in diff or "feature" in diff:
+                change_types.append("feat")
+            else:
+                change_types.append("chore")
+        except Exception as e:
+            print(f"Could not get diff for {file_path}: {e}")
+            change_types.append("chore")
+
+    # Determine the most common change type
+    if not change_types:
+        commit_type = "chore"
+    else:
+        most_common_type = Counter(change_types).most_common(1)[0][0]
+        commit_type = most_common_type
+
+    # Generate a summary based on the type
+    summaries = {
+        "feat": "implement new features",
+        "fix": "apply automatic fixes",
+        "test": "add or update tests",
+        "docs": "update documentation",
+        "chore": "perform routine maintenance"
+    }
+    summary = summaries.get(commit_type, "perform routine maintenance")
+
+    message = f"{commit_type}: {summary}"
     print(f"Generated message: {message}")
     return message
 
@@ -150,14 +199,12 @@ def main():
     changes = detect_changes()
 
     if changes:
-        message = generate_commit_message()
+        message = generate_commit_message(changes)
         commit_successful = commit_changes(message)
         if commit_successful and not args.no_push:
             push_changes()
     else:
         print("\nNo changes to commit. Exiting.")
-
-
 
 
 # Application entry point

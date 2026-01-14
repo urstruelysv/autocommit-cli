@@ -137,3 +137,4 @@ This document outlines the development roadmap for AutoCommit AI, breaking down 
 
 4.  **Future Scope Planning:**
     *   Create issues/tickets for future features like PR creation and IDE-native integrations to guide future development.
+- Test the new classification logic
