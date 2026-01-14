@@ -5,9 +5,10 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+	"autocommit/internal/history" // Added this import
 )
 
-func ClassifyAndGroupChanges(changes string) map[string][]string {
+func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[string][]string {
 	fmt.Println("\n--- Classifying and Grouping Changes ---")
 	groups := make(map[string][]string)
 
