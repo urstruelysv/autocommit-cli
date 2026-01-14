@@ -75,12 +75,13 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ### Current (Go MVP)
 
-*   **Project Structure:** Refactored into `cmd/autocommit-cli` and `internal/` packages (`git`, `classify`, `history`).
+*   **Project Structure:** Refactored into `cmd/autocommit-cli` and `internal/` packages (`git`, `classify`, `history`, `ai`).
 *   **Change Detection:** Automatically detects staged and unstaged changes in a Git repository.
 *   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit.
 *   **Basic Commit Message Generation:** Generates conventional commit messages (e.g., `fix: apply automatic fixes`) for each logical group, now incorporating module scopes.
+*   **AI-Assisted Commit Message Generation:** (Optional, via `--ai-commit` flag) Uses the Gemini API to generate a single commit message for all changes.
 *   **Safe Commit & Push:** Stages and commits changes, with safeguards to prevent pushing from a detached HEAD or to a branch without a configured remote. Includes a `--no-push` flag.
-*   **History Learning (Initial):** Extracts potential commit scopes from `git log` for future intelligent message generation.
+*   **History Learning (Initial):** Extracts potential commit scopes and types from `git log` for future intelligent message generation.
 
 ### Planned (from PRD)
 
