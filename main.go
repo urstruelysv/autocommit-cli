@@ -191,6 +191,7 @@ func main() {
 		if !*noPush {
 			pushChanges()
 		}
+		// A temporary fix for testing
 	} else {
 		fmt.Println("\nNo changes to commit. Exiting.")
 	}
