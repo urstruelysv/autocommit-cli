@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const geminiAPIURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=%s"
+const geminiAPIURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=%s"
 
 // GenerateAICommitMessage uses the Gemini API (via HTTP POST) to generate a commit message based on the provided diff.
 func GenerateAICommitMessage(diff string) (string, error) {
