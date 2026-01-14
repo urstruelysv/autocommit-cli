@@ -47,11 +47,51 @@ def commit_changes(message):
         print("Staged all changes.")
         subprocess.run(["git", "commit", "-m", message], check=True)
         print("Committed changes.")
+        return True
     except subprocess.CalledProcessError as e:
         print(f"Error during commit process: {e}")
         print(e.stderr)
+        return False
     except FileNotFoundError:
         print("Error: 'git' command not found. Is Git installed and in your PATH?")
+        return False
+
+def push_changes():
+    """
+    Pushes changes to the remote repository after safety checks.
+    """
+    print("\n--- Pushing Changes ---")
+    try:
+        # Check for detached HEAD
+        branch_result = subprocess.run(
+            ["git", "symbolic-ref", "--short", "HEAD"],
+            capture_output=True, text=True
+        )
+        if branch_result.returncode != 0:
+            print("Error: Detached HEAD state. Aborting push.")
+            return
+
+        branch_name = branch_result.stdout.strip()
+
+        # Check if remote is configured
+        remote_result = subprocess.run(
+            ["git", "config", f"branch.{branch_name}.remote"],
+            capture_output=True, text=True
+        )
+        if remote_result.returncode != 0:
+            print(f"Error: No remote configured for branch '{branch_name}'. Aborting push.")
+            return
+
+        print(f"Pushing changes to remote for branch '{branch_name}'...")
+        subprocess.run(["git", "push"], check=True)
+        print("Push successful.")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error during push: {e}")
+        print(e.stderr)
+    except FileNotFoundError:
+        print("Error: 'git' command not found. Is Git installed and in your PATH?")
+
 
 def main():
     """
@@ -111,10 +151,14 @@ def main():
 
     if changes:
         message = generate_commit_message()
-        commit_changes(message)
+        commit_successful = commit_changes(message)
+        if commit_successful and not args.no_push:
+            push_changes()
     else:
         print("\nNo changes to commit. Exiting.")
 
 
+
+# Entry point for the application
 if __name__ == "__main__":
     main()
