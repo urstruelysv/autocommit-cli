@@ -1,3 +1,4 @@
+
 # Python
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -139,4 +140,4 @@ go.work
 
 # Go binary
 autocommit
-action_plan.md
+ACTION_PLAN.md
