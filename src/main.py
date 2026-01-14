@@ -159,6 +159,7 @@ def main():
 
 
 
-# Entry point for the application
+
+# Application entry point
 if __name__ == "__main__":
     main()
