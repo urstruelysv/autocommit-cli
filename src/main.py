@@ -28,6 +28,15 @@ def detect_changes():
         print("Error: 'git' command not found. Is Git installed and in your PATH?")
         return None
 
+def generate_commit_message():
+    """
+    Generates a basic commit message.
+    """
+    print("\n--- Commit Message Generation ---")
+    message = "chore: automatic commit of all changes"
+    print(f"Generated message: {message}")
+    return message
+
 def main():
     """
     Main function for the AutoCommit AI CLI.
@@ -83,6 +92,8 @@ def main():
 
     print("\n--- Change Detection ---")
     detect_changes()
+
+    generate_commit_message()
 
 
 if __name__ == "__main__":
