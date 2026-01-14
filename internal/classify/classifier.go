@@ -26,9 +26,17 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[
 		pathParts := strings.Split(filePath, "/")
 		if len(pathParts) >= 2 {
 			if pathParts[0] == "cmd" && len(pathParts) >= 2 {
-				scope = pathParts[1] // e.g., cmd/autocommit -> autocommit
+				potentialScope := pathParts[1]
+				// Check if this potential scope is common in history
+				if _, ok := learnedData.Scopes[potentialScope]; ok {
+					scope = potentialScope
+				}
 			} else if pathParts[0] == "internal" && len(pathParts) >= 2 {
-				scope = pathParts[1] // e.g., internal/git -> git
+				potentialScope := pathParts[1]
+				// Check if this potential scope is common in history
+				if _, ok := learnedData.Scopes[potentialScope]; ok {
+					scope = potentialScope
+				}
 			}
 		}
 
