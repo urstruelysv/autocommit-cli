@@ -37,6 +37,22 @@ def generate_commit_message():
     print(f"Generated message: {message}")
     return message
 
+def commit_changes(message):
+    """
+    Stages all changes and commits them with the given message.
+    """
+    print("\n--- Committing Changes ---")
+    try:
+        subprocess.run(["git", "add", "."], check=True)
+        print("Staged all changes.")
+        subprocess.run(["git", "commit", "-m", message], check=True)
+        print("Committed changes.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error during commit process: {e}")
+        print(e.stderr)
+    except FileNotFoundError:
+        print("Error: 'git' command not found. Is Git installed and in your PATH?")
+
 def main():
     """
     Main function for the AutoCommit AI CLI.
@@ -91,9 +107,13 @@ def main():
         print("- Verbose mode enabled.")
 
     print("\n--- Change Detection ---")
-    detect_changes()
+    changes = detect_changes()
 
-    generate_commit_message()
+    if changes:
+        message = generate_commit_message()
+        commit_changes(message)
+    else:
+        print("\nNo changes to commit. Exiting.")
 
 
 if __name__ == "__main__":
