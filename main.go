@@ -34,6 +34,24 @@ func generateCommitMessage() string {
 	return message
 }
 
+func commitChanges(message string) error {
+	fmt.Println("\n--- Committing Changes ---")
+	addCmd := exec.Command("git", "add", ".")
+	if output, err := addCmd.CombinedOutput(); err != nil {
+		log.Printf("Error staging changes: %s\n%v", string(output), err)
+		return err
+	}
+	fmt.Println("Staged all changes.")
+
+	commitCmd := exec.Command("git", "commit", "-m", message)
+	if output, err := commitCmd.CombinedOutput(); err != nil {
+		log.Printf("Error committing changes: %s\n%v", string(output), err)
+		return err
+	}
+	fmt.Println("Committed changes.")
+	return nil
+}
+
 func main() {
 	// Define flags
 	review := flag.Bool("review", false, "Enable review mode to inspect commits before they are made.")
@@ -71,7 +89,10 @@ func main() {
 	}
 
 	if changes != "" {
-		generateCommitMessage()
+		message := generateCommitMessage()
+		if err := commitChanges(message); err != nil {
+			log.Fatalf("Failed to commit changes: %v", err)
+		}
 	} else {
 		fmt.Println("\nNo changes to commit. Exiting.")
 	}
