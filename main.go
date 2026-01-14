@@ -27,6 +27,13 @@ func detectChanges() (string, error) {
 	return changes, nil
 }
 
+func generateCommitMessage() string {
+	fmt.Println("\n--- Commit Message Generation ---")
+	message := "chore: automatic commit of all changes"
+	fmt.Printf("Generated message: %s\n", message)
+	return message
+}
+
 func main() {
 	// Define flags
 	review := flag.Bool("review", false, "Enable review mode to inspect commits before they are made.")
@@ -58,5 +65,14 @@ func main() {
 	}
 
 	fmt.Println("\n--- Change Detection ---")
-	detectChanges()
+	changes, err := detectChanges()
+	if err != nil {
+		log.Fatalf("Failed to detect changes: %v", err)
+	}
+
+	if changes != "" {
+		generateCommitMessage()
+	} else {
+		fmt.Println("\nNo changes to commit. Exiting.")
+	}
 }
