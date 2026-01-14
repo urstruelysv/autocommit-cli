@@ -7,6 +7,33 @@ import (
 	"strings"
 )
 
+func CheckGitStatus() error {
+	// Check for clean working directory (excluding untracked files)
+	cmdStatus := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
+	outputStatus, err := cmdStatus.Output()
+	if err != nil {
+		return fmt.Errorf("failed to get git status: %w", err)
+	}
+	if strings.TrimSpace(string(outputStatus)) != "" {
+		return fmt.Errorf("working directory has uncommitted changes. Please commit or stash your changes before running autocommit")
+	}
+
+	// Check for detached HEAD
+	cmdBranch := exec.Command("git", "symbolic-ref", "--short", "HEAD")
+	_, err = cmdBranch.Output()
+	if err != nil {
+		return fmt.Errorf("detached HEAD state detected. Please checkout a branch before running autocommit")
+	}
+
+	// Check if the current branch has an upstream configured
+	cmdRevParse := exec.Command("git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+	if err := cmdRevParse.Run(); err != nil {
+		return fmt.Errorf("current branch does not have an upstream branch configured. Please set an upstream branch (e.g., 'git push -u origin <branch_name>')")
+	}
+
+	return nil
+}
+
 func DetectChanges() (string, error) {
 	fmt.Println("Detecting changes...")
 	cmd := exec.Command("git", "status", "--porcelain")
@@ -48,16 +75,15 @@ func CommitChanges(message string, files []string) error {
 
 func PushChanges() {
 	fmt.Println("\n--- Pushing Changes ---")
-	// Check for detached HEAD
+	// Check if remote is configured
 	branchCmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
 	branchOutput, err := branchCmd.Output()
 	if err != nil {
-		log.Println("Error: Detached HEAD state or other error getting branch. Aborting push.")
+		log.Println("Error: Could not determine current branch. Aborting push.")
 		return
 	}
 	branchName := strings.TrimSpace(string(branchOutput))
 
-	// Check if remote is configured
 	remoteCmd := exec.Command("git", "config", fmt.Sprintf("branch.%s.remote", branchName))
 	if err := remoteCmd.Run(); err != nil {
 		log.Printf("Error: No remote configured for branch '%s'. Aborting push.", branchName)

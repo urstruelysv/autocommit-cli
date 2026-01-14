@@ -25,6 +25,12 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("AutoCommit AI (Go version) running...")
+
+	// Perform initial git status checks
+	if err := git.CheckGitStatus(); err != nil {
+		log.Fatalf("Git status check failed: %v", err)
+	}
+
 	fmt.Println("Arguments provided:")
 
 	if *review {
