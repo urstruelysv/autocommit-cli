@@ -19,6 +19,17 @@ func ClassifyAndGroupChanges(changes string) map[string][]string {
 		}
 		filePath := parts[len(parts)-1]
 		commitType := "chore" // Default type
+		scope := ""
+
+		// Determine scope from file path
+		pathParts := strings.Split(filePath, "/")
+		if len(pathParts) >= 2 {
+			if pathParts[0] == "cmd" && len(pathParts) >= 2 {
+				scope = pathParts[1] // e.g., cmd/autocommit -> autocommit
+			} else if pathParts[0] == "internal" && len(pathParts) >= 2 {
+				scope = pathParts[1] // e.g., internal/git -> git
+			}
+		}
 
 		if strings.Contains(filePath, "tests/") || strings.HasPrefix(filePath, "test_") {
 			commitType = "test"
@@ -38,11 +49,16 @@ func ClassifyAndGroupChanges(changes string) map[string][]string {
 				}
 			}
 		}
-		groups[commitType] = append(groups[commitType], filePath)
+		
+		groupKey := commitType
+		if scope != "" {
+			groupKey = fmt.Sprintf("%s(%s)", commitType, scope)
+		}
+		groups[groupKey] = append(groups[groupKey], filePath)
 	}
 
-	for commitType, files := range groups {
-		fmt.Printf("Group '%s': %v\n", commitType, files)
+	for groupKey, files := range groups {
+		fmt.Printf("Group '%s': %v\n", groupKey, files)
 	}
 
 	return groups
