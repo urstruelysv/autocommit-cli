@@ -52,6 +52,35 @@ func commitChanges(message string) error {
 	return nil
 }
 
+func pushChanges() {
+	fmt.Println("\n--- Pushing Changes ---")
+	// Check for detached HEAD
+	branchCmd := exec.Command("git", "symbolic-ref", "--short", "HEAD")
+	branchOutput, err := branchCmd.Output()
+	if err != nil {
+		log.Println("Error: Detached HEAD state or other error getting branch. Aborting push.")
+		return
+	}
+	branchName := strings.TrimSpace(string(branchOutput))
+
+	// Check if remote is configured
+	remoteCmd := exec.Command("git", "config", fmt.Sprintf("branch.%s.remote", branchName))
+	if err := remoteCmd.Run(); err != nil {
+		log.Printf("Error: No remote configured for branch '%s'. Aborting push.\n", branchName)
+		return
+	}
+
+	fmt.Printf("Pushing changes to remote for branch '%s'...\n", branchName)
+	pushCmd := exec.Command("git", "push")
+	if output, err := pushCmd.CombinedOutput(); err != nil {
+		log.Printf("Error during push: %s\n%v", string(output), err)
+		return
+	}
+	fmt.Println("Push successful.")
+}
+
+
+// Main application entry point
 func main() {
 	// Define flags
 	review := flag.Bool("review", false, "Enable review mode to inspect commits before they are made.")
@@ -92,6 +121,10 @@ func main() {
 		message := generateCommitMessage()
 		if err := commitChanges(message); err != nil {
 			log.Fatalf("Failed to commit changes: %v", err)
+		}
+
+		if !*noPush {
+			pushChanges()
 		}
 	} else {
 		fmt.Println("\nNo changes to commit. Exiting.")
