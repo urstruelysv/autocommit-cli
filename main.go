@@ -27,12 +27,76 @@ func detectChanges() (string, error) {
 	return changes, nil
 }
 
-func generateCommitMessage() string {
+func generateCommitMessage(changes string) string {
 	fmt.Println("\n--- Commit Message Generation ---")
-	message := "chore: automatic commit of all changes"
+
+	changeTypes := []string{}
+	lines := strings.Split(changes, "\n")
+	for _, line := range lines {
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			continue
+		}
+		filePath := parts[len(parts)-1]
+
+		if strings.Contains(filePath, "tests/") || strings.HasPrefix(filePath, "test_") {
+			changeTypes = append(changeTypes, "test")
+			continue
+		}
+		if strings.HasSuffix(filePath, ".md") {
+			changeTypes = append(changeTypes, "docs")
+			continue
+		}
+
+		diffCmd := exec.Command("git", "diff", "--", filePath)
+		diffOutput, err := diffCmd.Output()
+		if err != nil {
+			log.Printf("Could not get diff for %s: %v", filePath, err)
+			changeTypes = append(changeTypes, "chore")
+			continue
+		}
+		diff := strings.ToLower(string(diffOutput))
+
+		if strings.Contains(diff, "fix") || strings.Contains(diff, "bug") {
+			changeTypes = append(changeTypes, "fix")
+		} else if strings.Contains(diff, "add") || strings.Contains(diff, "feature") {
+			changeTypes = append(changeTypes, "feat")
+		} else {
+			changeTypes = append(changeTypes, "chore")
+		}
+	}
+
+	// Determine the most common change type
+	typeCounts := make(map[string]int)
+	for _, t := range changeTypes {
+		typeCounts[t]++
+	}
+
+	commitType := "chore"
+	maxCount := 0
+	if len(typeCounts) > 0 {
+		for t, count := range typeCounts {
+			if count > maxCount {
+				maxCount = count
+				commitType = t
+			}
+		}
+	}
+
+	summaries := map[string]string{
+		"feat":   "implement new features",
+		"fix":    "apply automatic fixes",
+		"test":   "add or update tests",
+		"docs":   "update documentation",
+		"chore":  "perform routine maintenance",
+	}
+	summary := summaries[commitType]
+
+	message := fmt.Sprintf("%s: %s", commitType, summary)
 	fmt.Printf("Generated message: %s\n", message)
 	return message
 }
+
 
 func commitChanges(message string) error {
 	fmt.Println("\n--- Committing Changes ---")
@@ -119,7 +183,7 @@ func main() {
 	}
 
 	if changes != "" {
-		message := generateCommitMessage()
+		message := generateCommitMessage(changes)
 		if err := commitChanges(message); err != nil {
 			log.Fatalf("Failed to commit changes: %v", err)
 		}
