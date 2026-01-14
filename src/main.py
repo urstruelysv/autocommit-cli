@@ -1,4 +1,32 @@
 import argparse
+import subprocess
+
+def detect_changes():
+    """
+    Detects staged and unstaged changes in the repository.
+    """
+    print("Detecting changes...")
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        changes = result.stdout.strip()
+        if changes:
+            print("Found changes:")
+            print(changes)
+        else:
+            print("No changes found.")
+        return changes
+    except subprocess.CalledProcessError as e:
+        print(f"Error detecting changes: Not a git repository or no git installed?")
+        print(e.stderr)
+        return None
+    except FileNotFoundError:
+        print("Error: 'git' command not found. Is Git installed and in your PATH?")
+        return None
 
 def main():
     """
@@ -53,7 +81,8 @@ def main():
     if args.verbose:
         print("- Verbose mode enabled.")
 
-    print("\nCore logic not yet implemented.")
+    print("\n--- Change Detection ---")
+    detect_changes()
 
 
 if __name__ == "__main__":
