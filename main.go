@@ -80,7 +80,8 @@ func pushChanges() {
 }
 
 
-// Main application entry point
+
+// Application entry point
 func main() {
 	// Define flags
 	review := flag.Bool("review", false, "Enable review mode to inspect commits before they are made.")
