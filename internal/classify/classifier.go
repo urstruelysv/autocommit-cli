@@ -5,7 +5,7 @@ import (
 	"log"
 	"os/exec"
 	"strings"
-	"autocommit/internal/history" // Added this import
+	"github.com/urstruelysv/autocommit-cli/internal/history"
 )
 
 func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[string][]string {
