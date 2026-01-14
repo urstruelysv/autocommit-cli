@@ -100,29 +100,43 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 *   Go (version 1.18 or higher recommended)
 *   Git (installed and configured)
+*   **Gemini API Key:** Obtain a free API key from [Google AI Studio](https://aistudio.google.com/). Set it as an environment variable `GEMINI_API_KEY` or in a `.env` file.
 
-    git clone https://github.com/urstruelysv/autocommit-cli.git # Replace with actual repo URL
-    cd autocommit-ai
-    ```
-2.  **Run the application:**
+### Running from Source (Development)
+
+1.  **Clone the repository:**
     ```bash
-    go run cmd/autocommit/main.go [flags]
+    git clone https://github.com/urstruelysv/autocommit-cli.git
+    cd autocommit-cli
+    ```
+2.  **Set up API Key:**
+    ```bash
+    # Option 1: Export as environment variable (temporary for current session)
+    export GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+
+    # Option 2: Create a .env file (recommended for local development)
+    echo 'GEMINI_API_KEY="YOUR_GEMINI_API_KEY"' > .env
+    # Then load it (e.g., using a tool like `direnv` or manually `source .env`)
+    ```
+3.  **Run the application:**
+    ```bash
+    go run cmd/autocommit-cli/main.go [flags]
     ```
 
 ### Building an Executable
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-repo/autocommit-ai.git # Replace with actual repo URL
-    cd autocommit-ai
+    git clone https://github.com/urstruelysv/autocommit-cli.git
+    cd autocommit-cli
     ```
 2.  **Build the executable:**
     ```bash
-    go build -o autocommit cmd/autocommit-cli/main.go
+    go build -o autocommit-cli cmd/autocommit-cli/main.go
     ```
 3.  **Move to your PATH (optional):**
     ```bash
-    sudo mv autocommit /usr/local/bin/
+    sudo mv autocommit-cli /usr/local/bin/
     ```
 
 ### Future Installation Methods
@@ -135,12 +149,14 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ## CLI Usage
 
+When running from source:
+```bash
 go run cmd/autocommit-cli/main.go [flags]
 ```
 
 When using a built executable:
 ```bash
-autocommit [flags]
+autocommit-cli [flags]
 ```
 
 ### Flags
@@ -150,20 +166,26 @@ autocommit [flags]
 *   `--no-push`: Create commits but do not push them to the remote repository.
 *   `--ci`: Enable CI mode for non-interactive, deterministic execution (Planned).
 *   `--verbose`: Enable verbose output for debugging purposes (Planned).
+*   `--ai-commit`: Use AI (Gemini API) to generate commit messages. Requires `GEMINI_API_KEY`.
 
 ### Examples
 
 *   **Automatically commit and push all changes (from source):**
     ```bash
-    go run cmd/autocommit/main.go
+    go run cmd/autocommit-cli/main.go
     ```
 *   **Commit changes without pushing (from source):**
     ```bash
-    go run cmd/autocommit/main.go --no-push
+    go run cmd/autocommit-cli/main.go --no-push
     ```
+*   **Generate commit message using AI (from source):**
+    ```bash
+    go run cmd/autocommit-cli/main.go --ai-commit --no-push
+    ```
+    *(Ensure `GEMINI_API_KEY` is set)*
 *   **Review proposed commits before committing (Planned):**
     ```bash
-    go run cmd/autocommit/main.go --review
+    go run cmd/autocommit-cli/main.go --review
     ```
 
 ---
