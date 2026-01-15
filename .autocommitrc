@@ -1,0 +1,5 @@
+auto_push = false
+review_mode = true
+ai_commit = true
+ci = false
+verbose = true
