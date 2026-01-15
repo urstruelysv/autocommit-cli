@@ -2,16 +2,49 @@ package history
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os/exec"
 	"regexp"
 	"strings"
+	"encoding/json"
 )
 
 // LearnData holds the learned scopes and types
 type LearnData struct {
 	Scopes map[string]int
 	Types  map[string]int
+}
+
+func SaveLearnedData(data LearnData) error {
+	cacheFilePath := ".autocommit_cache"
+	jsonData, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal learned data: %w", err)
+	}
+
+	err = ioutil.WriteFile(cacheFilePath, jsonData, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write learned data to %s: %w", cacheFilePath, err)
+	}
+	fmt.Printf("Learned data saved to %s\n", cacheFilePath)
+	return nil
+}
+
+func LoadLearnedData() (LearnData, error) {
+	cacheFilePath := ".autocommit_cache"
+	jsonData, err := ioutil.ReadFile(cacheFilePath)
+	if err != nil {
+		return LearnData{}, fmt.Errorf("failed to read learned data from %s: %w", cacheFilePath, err)
+	}
+
+	var data LearnData
+	err = json.Unmarshal(jsonData, &data)
+	if err != nil {
+		return LearnData{}, fmt.Errorf("failed to unmarshal learned data from %s: %w", cacheFilePath, err)
+	}
+	fmt.Printf("Learned data loaded from %s\n", cacheFilePath)
+	return data, nil
 }
 
 func LearnFromHistory() LearnData {
