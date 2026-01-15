@@ -1,2 +1,0 @@
-This is a new file to test the AI commit message generation.
-It adds a new feature to the application.
