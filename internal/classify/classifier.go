@@ -22,21 +22,12 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[
 		commitType := "chore" // Default type
 		scope := ""
 
-		// Determine scope from file path
 		pathParts := strings.Split(filePath, "/")
-		if len(pathParts) >= 2 {
-			if pathParts[0] == "cmd" && len(pathParts) >= 2 {
-				potentialScope := pathParts[1]
-				// Check if this potential scope is common in history
-				if _, ok := learnedData.Scopes[potentialScope]; ok {
-					scope = potentialScope
-				}
-			} else if pathParts[0] == "internal" && len(pathParts) >= 2 {
-				potentialScope := pathParts[1]
-				// Check if this potential scope is common in history
-				if _, ok := learnedData.Scopes[potentialScope]; ok {
-					scope = potentialScope
-				}
+		// Determine scope from file path
+		for _, part := range pathParts {
+			if _, ok := learnedData.Scopes[part]; ok {
+				scope = part
+				break
 			}
 		}
 
@@ -51,10 +42,14 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[
 				log.Printf("Could not get diff for %s: %v", filePath, err)
 			} else {
 				diff := strings.ToLower(string(diffOutput))
-				if strings.Contains(diff, "fix") || strings.Contains(diff, "bug") {
+				if strings.Contains(diff, "fix") || strings.Contains(diff, "bug") || strings.Contains(diff, "error") {
 					commitType = "fix"
-				} else if strings.Contains(diff, "add") || strings.Contains(diff, "feature") {
+				} else if strings.Contains(diff, "feat") || strings.Contains(diff, "add") || strings.Contains(diff, "feature") || strings.Contains(diff, "implement") {
 					commitType = "feat"
+				} else if strings.Contains(diff, "refactor") || strings.Contains(diff, "restructure") || strings.Contains(diff, "rename") {
+					commitType = "refactor"
+				} else if strings.Contains(diff, "chore") || strings.Contains(diff, "update") || strings.Contains(diff, "remove") || strings.Contains(diff, "config") {
+					commitType = "chore"
 				}
 			}
 		}
