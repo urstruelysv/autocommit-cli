@@ -8,19 +8,15 @@ import (
 )
 
 func CheckGitStatus() error {
-	// Check for clean working directory (excluding untracked files)
-	cmdStatus := exec.Command("git", "status", "--porcelain", "--untracked-files=no")
-	outputStatus, err := cmdStatus.Output()
-	if err != nil {
-		return fmt.Errorf("failed to get git status: %w", err)
-	}
-	if strings.TrimSpace(string(outputStatus)) != "" {
-		return fmt.Errorf("working directory has uncommitted changes. Please commit or stash your changes before running autocommit")
+	// Check for staged but uncommitted changes
+	cmdStaged := exec.Command("git", "diff", "--cached", "--quiet")
+	if err := cmdStaged.Run(); err != nil {
+		return fmt.Errorf("there are staged but uncommitted changes. Please commit or unstage them before running autocommit")
 	}
 
 	// Check for detached HEAD
 	cmdBranch := exec.Command("git", "symbolic-ref", "--short", "HEAD")
-	_, err = cmdBranch.Output()
+	_, err := cmdBranch.Output()
 	if err != nil {
 		return fmt.Errorf("detached HEAD state detected. Please checkout a branch before running autocommit")
 	}
