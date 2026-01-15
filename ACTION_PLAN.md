@@ -1,140 +1,268 @@
-# AutoCommit AI: Action Plan
+# AutoCommit AI — Final Product & Technical Specification (Loop-Safe)
 
-This document outlines the development roadmap for AutoCommit AI, breaking down the project into phased milestones based on the Product Requirements Document (PRD).
-
----
-
-## Phase 1: Minimum Viable Product (MVP) - Core Automation
-
-**Goal:** Create a functional CLI tool that can detect all changes, generate a single commit message, and safely push to the remote branch. This phase prioritizes core functionality and safety over intelligence.
-
-1.  **Project Setup & Scaffolding:**
-    *   Initialize Git repository.
-    *   Choose primary language (e.g., Python or Go for cross-platform CLI capabilities).
-    *   Set up project structure (`/src`, `/tests`, `/scripts`).
-    *   Implement basic command-line argument parsing.
-
-2.  **Change Detection:**
-    *   Implement logic to detect staged and unstaged changes using Git commands.
-    *   Ensure `.gitignore` is respected.
-    *   Create a function to gather a unified diff of all changes.
-
-3.  **Basic Commit Message Generation:**
-    *   Implement a rule-based commit message generator based on Conventional Commits.
-    *   Start with a simple implementation: `chore: automatic commit of all changes`.
-    *   This will be the fallback mechanism in later phases.
-
-4.  **Core `autocommit` Command:**
-    *   Create the main entry point for the `autocommit` command.
-    *   The command will:
-        1.  Detect changes.
-        2.  Generate a commit message.
-        3.  Stage all changes (`git add .`).
-        4.  Commit the changes (`git commit -m "..."`).
-
-5.  **Safe Push Logic:**
-    *   Implement safeguards:
-        *   Check for a clean working directory before starting.
-        *   Verify the current branch and remote tracking information.
-        *   Abort if on a detached `HEAD`.
-    *   Implement the push functionality (`git push`).
-    *   Add the `--no-push` flag to disable automatic pushing.
-
-6.  **Basic Installation:**
-    *   Create a `pip` package (`setup.py` or `pyproject.toml`) or equivalent for the chosen language.
-    *   Write a simple installation script (`install.sh`).
+> **Purpose**  
+AutoCommit AI is a deterministic, loop-safe CLI tool for solo developers and CI/CD systems that automatically creates **logical, reviewable Git commits** and optionally pushes them—without human micromanagement and without AI runaway loops.
 
 ---
 
-## Phase 2: Intelligence & Learning
+## 1. Core Principles (Non-Negotiable)
 
-**Goal:** Introduce the "smart" features that provide the core value proposition: logical grouping and history-aware commit messages.
+1. **Single-Pass Execution**
+   - Each run performs **exactly one analysis → one plan → one execution → exit**.
+   - No re-analysis after execution begins.
+   - No self-triggering reruns.
 
-1.  **Intelligent Change Classification:**
-    *   Develop a module to analyze diffs and classify them (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`).
-    *   Use file extensions, keywords (e.g., "fix," "add," "update"), and path conventions (e.g., `/tests/`) for classification.
+2. **No AI Feedback Loops**
+   - AI never reads its own output.
+   - AI never re-evaluates commits it generated.
+   - AI suggestions are immutable once confirmed or auto-accepted.
 
-2.  **Logical Commit Grouping (Core Innovation):**
-    *   Implement the initial algorithm for grouping related files into separate commit candidates.
-    *   Start with a heuristic-based approach: group files by change type and directory proximity.
-    *   The output should be a list of proposed commit groups, each with its own set of files.
+3. **Determinism First**
+   - Same inputs → same outputs (especially in CI).
+   - All randomness disabled by default.
 
-3.  **History-Aware Message Generation:**
-    *   Implement a module to parse the repository's `git log`.
-    *   Analyze past commit messages to infer common scopes `(<scope>)` and wording patterns.
-    *   Enhance the commit message generator to use this historical context. For each commit group, generate a tailored message (e.g., `feat(auth): add user login endpoint`).
+4. **Human Override Ends AI Authority**
+   - If the user edits a commit message, AI stops contributing immediately for that commit.
 
-4.  **Learning Module:**
-    *   Create a mechanism to store learned patterns (e.g., in a local, repo-specific cache file like `.autocommit_cache`).
-    *   Ensure this data is never shared externally.
-
----
-
-## Phase 3: User Experience & Platform Support
-
-**Goal:** Refine the user workflow, add optional review, and broaden platform accessibility.
-
-1.  **Review & Edit Mode (`--review`):**
-    *   Implement the interactive review flow.
-    *   Display the proposed commit groups and their generated messages in a clean, readable format.
-    *   Allow the user to quickly edit messages inline.
-    *   Implement a single-key confirmation to accept all proposed commits and proceed with the commit/push sequence.
-
-2.  **Configuration File:**
-    *   Implement support for a `.autocommitrc` file (YAML or TOML).
-    *   Add initial configuration options: `auto_push`, `review_mode`, `learn_from_history`.
-
-3.  **Expanded Installation Support:**
-    *   Create a Homebrew formula for macOS/Linux installation.
-    *   Create installation packages for Windows (e.g., Scoop, Winget, or a simple PowerShell script).
-    *   Provide single binary downloads for all major platforms.
-
-4.  **VS Code Extension (Wrapper):**
-    *   Develop a basic VS Code extension that wraps the CLI tool.
-    *   Provide a command palette option and a status bar icon to trigger `autocommit`.
+5. **Fail Closed, Not Open**
+   - On ambiguity, conflict, or unsafe Git state → abort with explanation.
 
 ---
 
-## Phase 4: CI/CD & Advanced Automation
+## 2. Target Users
 
-**Goal:** Make AutoCommit AI a reliable tool for automated environments and handle more complex repository setups.
-
-1.  **CI/CD Mode (`--ci`):**
-    *   Implement the `--ci` flag to enable non-interactive mode.
-    *   Ensure deterministic output and disable all prompts.
-    *   Provide structured, machine-readable logging (e.g., JSON).
-    *   Implement strict exit codes to signal success, failure, or no changes.
-
-2.  **Commit Guide Awareness:**
-    *   Implement a feature to automatically detect and parse commit guidelines (e.g., `CONTRIBUTING.md`).
-    *   Use simple regex to extract rules or examples.
-    *   Allow users to specify a guide via URL in `.autocommitrc`.
-    *   Adjust commit generation strategy based on the detected guidelines.
-
-3.  **Advanced Safeguards:**
-    *   Implement rollback on push failure (optional, configurable).
-    *   Handle large/binary files by automatically creating a separate `chore(assets): add binary files` commit.
+- **Primary**
+  - Solo developers
+  - Indie hackers
+  - OSS maintainers
+- **Secondary**
+  - CI/CD pipelines
+  - Automation bots
+  - Monorepo maintainers
 
 ---
 
-## Phase 5: Documentation & Release Readiness
+## 3. Supported Environments
 
-**Goal:** Produce high-quality documentation and prepare for a public launch.
+- CLI-first (mandatory)
+- CI/CD (non-interactive mode)
+- Optional:
+  - VS Code extension (wrapper only)
+- Platforms:
+  - macOS, Linux, Windows
 
-1.  **Comprehensive Documentation:**
-    *   Write a "5-Minute Quick Start" guide.
-    *   Create detailed installation guides for every supported platform.
-    *   Develop a "Recipes" section for common use cases (e.g., CI/CD integration with GitHub Actions, GitLab CI).
-    *   Document all CLI flags, configuration options, and safeguards.
-    *   Create a comparison page: "AutoCommit AI vs. X".
+---
 
-2.  **Website/Landing Page:**
-    *   Create a simple, clear landing page to market the tool and host the documentation.
+## 4. Feature Set (Final)
 
-3.  **Testing & Refinement:**
-    *   Conduct extensive end-to-end testing across different repository types and edge cases.
-    *   Refine the intelligence algorithms based on real-world usage.
+### 4.1 Change Detection
+- Reads **unstaged + staged** diffs once.
+- Snapshot-based: diff is frozen at start.
+- Respects `.gitignore`.
 
-4.  **Future Scope Planning:**
-    *   Create issues/tickets for future features like PR creation and IDE-native integrations to guide future development.
-- Test multi-group commits
+### 4.2 Logical Commit Grouping
+- Groups files by:
+  - Change intent (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`)
+  - Directory proximity
+  - Dependency hints (imports, references)
+- Output:
+  - Ordered list of **commit plans**
+  - Each plan = files + commit message
+
+> **Important:**  
+Grouping is computed once and cached for the run.  
+No regrouping is allowed later.
+
+### 4.3 Commit Message Generation
+- Conventional Commits compliant.
+- Inputs:
+  - Diff snapshot
+  - Repo history (read-only)
+  - Optional commit guide (compiled once)
+- Output:
+  - One message per commit group
+- Fallback:
+  - `chore: automated commit`
+
+### 4.4 Review Mode (`--review`)
+- Shows:
+  - Commit groups
+  - Messages
+- Allowed actions:
+  - Accept all
+  - Edit messages
+  - Abort
+- **Editing a message disables AI for that commit permanently.**
+
+### 4.5 Execution Engine
+- Sequential commit application:
+  1. `git add <group files>`
+  2. `git commit -m "<message>"`
+- Push behavior:
+  - Default: enabled
+  - `--no-push`: commits only
+- Push happens **once after all commits succeed**.
+
+---
+
+## 5. CI/CD Mode (`--ci`)
+
+- Non-interactive
+- No prompts
+- JSON logs
+- Strict exit codes:
+  - `0` → success
+  - `1` → error
+  - `2` → no changes
+- No learning
+- No history mutation
+
+---
+
+## 6. Learning System (Bounded & Safe)
+
+### What It Learns
+- Common scopes
+- Message phrasing patterns
+
+### What It NEVER Does
+- Rewrites history
+- Influences current-run decisions
+- Triggers re-analysis
+
+### Storage
+- Repo-local cache (`.autocommit_cache`)
+- Write-once per run
+- Read-only at startup
+
+---
+
+## 7. Commit Guide Support
+
+- Auto-detect:
+  - `CONTRIBUTING.md`
+  - `commitlint.config.*`
+- Optional manual link in config
+- Guides are:
+  - Parsed once
+  - Compiled into static rules
+  - Never reinterpreted mid-run
+
+---
+
+## 8. Safeguards & Abort Conditions
+
+AutoCommit AI **aborts immediately** if:
+
+- Detached HEAD
+- Rebase or merge in progress
+- Dirty index after snapshot
+- Push conflicts
+- Partial commit failure
+- AI output violates commit rules
+
+Rollback:
+- Enabled by default for multi-commit failures.
+
+---
+
+## 9. Loop Prevention Rules (Critical)
+
+| Risk | Mitigation |
+|----|----|
+AI re-analyzing commits | Snapshot diff, immutable plan |
+Unstaged loop | Freeze diff at start |
+`--no-push` reruns | Execution flag locks flow |
+Multi-group commit loop | Commit plan index cursor (monotonic) |
+Learning recursion | No same-run reads |
+Human edit loop | AI disabled instantly |
+
+**There is no code path where AI is called twice for the same run.**
+
+---
+
+## 10. Installation (Easy by Design)
+
+- Homebrew (`brew install autocommit-ai`)
+- Scoop / Winget (Windows)
+- `pipx install autocommit-ai`
+- Single static binaries
+- GitHub Releases
+- VS Code Marketplace (wrapper)
+
+---
+
+## 11. Tech Stack (Final)
+
+### Core
+- **Rust**
+  - Speed
+  - Safety
+  - Single binary
+- **libgit2**
+  - Git operations
+- **Tree-sitter**
+  - Code structure hints
+
+### AI Layer
+- Pluggable LLM interface
+- Strict input/output contracts
+- Token-limited, no memory
+
+### CLI
+- `clap` (Rust)
+- Structured logging
+
+---
+
+## 12. Data Flow (One Run)
+Start
+↓
+Git State Validation
+↓
+Diff Snapshot (Frozen)
+↓
+Commit Guide Compilation
+↓
+Grouping + Message Generation (ONCE)
+↓
+[Optional Review]
+↓
+Sequential Commit Execution
+↓
+Optional Push
+↓
+Learning Write
+↓
+Exit
+
+---
+
+## 13. Documentation as a Feature
+
+- 5-minute quick start
+- CI recipes
+- Failure explanations
+- Comparison with:
+  - Git hooks
+  - Husky
+  - Commitizen
+  - AI copilots
+
+---
+
+## 14. Explicit Non-Goals
+
+- No background daemon
+- No auto-reruns
+- No rewriting Git history
+- No hidden AI decisions
+- No cloud dependency required
+
+---
+
+## 15. Final Guarantee
+
+> **AutoCommit AI will never get stuck in a loop, never commit twice unintentionally, and never surprise the user.**
+
+That is a product guarantee, not an aspiration.
