@@ -32,9 +32,8 @@ func SaveLearnedData(data LearnData, verbose bool) error {
 	}
 	if verbose {
 		fmt.Printf("Verbose: Learned data saved to %s\n", cacheFilePath)
-	} else {
-		fmt.Printf("Learned data saved to %s\n", cacheFilePath)
 	}
+	fmt.Printf("Learned data saved to %s\n", cacheFilePath)
 	return nil
 }
 
@@ -55,9 +54,8 @@ func LoadLearnedData(verbose bool) (LearnData, error) {
 	}
 	if verbose {
 		fmt.Printf("Verbose: Learned data loaded from %s\n", cacheFilePath)
-	} else {
-		fmt.Printf("Learned data loaded from %s\n", cacheFilePath)
 	}
+	fmt.Printf("Learned data loaded from %s\n", cacheFilePath)
 	return data, nil
 }
 
@@ -99,35 +97,31 @@ func LearnFromHistory(verbose bool) LearnData {
 	if len(scopes) > 0 {
 		if verbose {
 			fmt.Println("Verbose: Found potential scopes.")
-		} else {
-			fmt.Println("Found potential scopes:")
 		}
+		fmt.Println("Found potential scopes:")
 		for scope, count := range scopes {
 			fmt.Printf("- %s (%d)\n", scope, count)
 		}
 	} else {
 		if verbose {
 			fmt.Println("Verbose: No conventional commit scopes found in history.")
-		} else {
-			fmt.Println("No conventional commit scopes found in history.")
 		}
+		fmt.Println("No conventional commit scopes found in history.")
 	}
 
 	if len(types) > 0 {
 		if verbose {
 			fmt.Println("Verbose: Found potential types.")
-		} else {
-			fmt.Println("Found potential types:")
 		}
+		fmt.Println("Found potential types:")
 		for t, count := range types {
 			fmt.Printf("- %s (%d)\n", t, count)
 		}
 	} else {
 		if verbose {
 			fmt.Println("Verbose: No conventional commit types found in history.")
-		} else {
-			fmt.Println("No conventional commit types found in history.")
 		}
+		fmt.Println("No conventional commit types found in history.")
 	}
 
 	return LearnData{Scopes: scopes, Types: types}
