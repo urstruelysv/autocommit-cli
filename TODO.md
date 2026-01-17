@@ -42,12 +42,12 @@ This document outlines the remaining tasks and areas for improvement for the Aut
 - [ ] **Package for Homebrew:** Create and maintain a Homebrew formula for macOS and Linux users.
 - [ ] **Package for Scoop/Winget:** Develop packaging for Windows users via Scoop or Winget.
 - [ ] **Package for pipx:** Create a pipx package for Python users (if applicable for a Go application, or clarify alternative).
-- [ ] **Single Static Binaries:** Provide pre-compiled single static binaries for various platforms on GitHub Releases.
+- [x] **Single Static Binaries:** Provided a `build.sh` script to build and install the application.
 - [ ] **GitHub Releases Automation:** Automate the release process on GitHub.
 
 ## 4. Documentation (ACTION_PLAN 13)
 
-- [ ] **5-minute Quick Start Guide:** Create a concise guide for new users to get started quickly.
+- [x] **5-minute Quick Start Guide:** Updated the `README.md` with installation and usage instructions.
 - [ ] **CI Recipes:** Provide examples and configurations for integrating AutoCommit AI into common CI/CD pipelines.
 - [ ] **Failure Explanations:** Document common failure modes and their explanations/resolutions.
 - [ ] **Comparison with Alternatives:** Document how AutoCommit AI compares to other tools like Git hooks, Husky, Commitizen, and AI copilots.
@@ -58,3 +58,7 @@ This document outlines the remaining tasks and areas for improvement for the Aut
 
 ### Improved Rule-based Commit Message Generation (ACTION_PLAN 4.3)
 - [x] Enhanced the rule-based commit message generation by leveraging learned subject lines from commit history, making messages more context-aware and aligned with historical patterns.
+- [x] Added interactive mode selection to make the application easier to use.
+- [x] Added support for `.env` files to manage environment variables.
+- [x] Implemented a retry mechanism with exponential backoff for API calls.
+- [x] Handled `EOF` error in the interactive prompt.

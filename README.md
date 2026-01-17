@@ -82,6 +82,8 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   **AI-Assisted Commit Message Generation:** (Optional, via `--ai-commit` flag) Uses the Gemini API to generate a single commit message for all changes.
 *   **Safe Commit & Push:** Stages and commits changes, with safeguards to prevent pushing from a detached HEAD or to a branch without a configured remote. Includes a `--no-push` flag.
 *   **History Learning (Initial):** Extracts potential commit scopes and types from `git log` for future intelligent message generation.
+*   **Interactive Mode Selection:** Prompts the user to select a mode of operation.
+*   **CI/CD Mode:** `--ci` flag for non-interactive, deterministic execution in CI environments.
 
 ### Planned (from PRD)
 
@@ -90,7 +92,6 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   **Learning From History:** Continuously improves commit quality based on past commits and guidelines.
 *   **Commit Guide Awareness:** Automatically detects and adheres to project-specific commit guidelines.
 *   **Review & Edit Mode:** Optional interactive mode to review and edit proposed commits before finalization.
-*   **CI/CD Mode:** `--ci` flag for non-interactive, deterministic execution in CI environments.
 
 ---
 
@@ -120,24 +121,22 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
     ```
 3.  **Run the application:**
     ```bash
-    go run cmd/autocommit-cli/main.go [flags]
+    go run cmd/autocommit-cli/main.go
     ```
 
-### Building an Executable
+### Building and Installing the Executable
 
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/urstruelysv/autocommit-cli.git
     cd autocommit-cli
     ```
-2.  **Build the executable:**
+2.  **Run the build script:**
     ```bash
-    go build -o autocommit-cli cmd/autocommit-cli/main.go
+    chmod +x build.sh
+    ./build.sh
     ```
-3.  **Move to your PATH (optional):**
-    ```bash
-    sudo mv autocommit-cli /usr/local/bin/
-    ```
+    This will build the application and install it in your `/usr/local/bin` directory. You will then be able to run `autocommit-cli` from anywhere in your terminal.
 
 ### Future Installation Methods
 
@@ -149,43 +148,41 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ## CLI Usage
 
-When running from source:
-```bash
-go run cmd/autocommit-cli/main.go [flags]
+When you run the application, you will be prompted to select a mode of operation:
+
+```
+Select a mode to run autocommit-cli:
+1. Normal - Create commits and push them to the remote repository.
+2. Review - Inspect commits before they are made.
+3. No-push - Create commits but do not push them to the remote repository.
+4. CI - Non-interactive, deterministic execution for CI environments.
+5. Verbose - Enable verbose output for debugging purposes.
+6. AI-Commit - Use AI to generate commit messages.
+Enter your choice (1-6):
 ```
 
-When using a built executable:
+### CI Mode
+
+For non-interactive environments like CI/CD pipelines, you can use the `--ci` flag:
+
 ```bash
-autocommit-cli [flags]
+autocommit-cli --ci
 ```
 
-### Flags
-
-*   `--review`: Enable review mode to inspect commits before they are made (Planned).
-*   `--y-run`: Not implemented yet.
-*   `--no-push`: Create commits but do not push them to the remote repository.
-*   `--ci`: Enable CI mode for non-interactive, deterministic execution (Planned).
-*   `--verbose`: Enable verbose output for debugging purposes (Planned).
-*   `--ai-commit`: Use AI (Gemini API) to generate commit messages. Requires `GEMINI_API_KEY`.
+This will run the application in CI mode, which is non-interactive and deterministic.
 
 ### Examples
 
-*   **Automatically commit and push all changes (from source):**
-    ```bash
-    go run cmd/autocommit-cli/main.go
-    ```
-*   **Commit changes without pushing (from source):**
-    ```bash
-    go run cmd/autocommit-cli/main.go --no-push
-    ```
-*   **Generate commit message using AI (from source):**
-    ```bash
-    go run cmd/autocommit-cli/main.go --ai-commit --no-push
-    ```
+*   **Automatically commit and push all changes:**
+    Run the application and select "Normal" mode.
+*   **Commit changes without pushing:**
+    Run the application and select "No-push" mode.
+*   **Generate commit message using AI:**
+    Run the application and select "AI-Commit" mode.
     *(Ensure `GEMINI_API_KEY` is set)*
-*   **Review proposed commits before committing (Planned):**
+*   **Run in CI mode:**
     ```bash
-    go run cmd/autocommit-cli/main.go --review
+    autocommit-cli --ci
     ```
 
 ---
