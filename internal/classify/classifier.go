@@ -5,10 +5,14 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+
 	"github.com/urstruelysv/autocommit-cli/internal/history"
 )
 
-func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[string][]string {
+func ClassifyAndGroupChanges(changes string, learnedData history.LearnData, verbose bool) map[string][]string {
+	if verbose {
+		fmt.Println("Verbose: Classifying and grouping changes...")
+	}
 	fmt.Println("\n--- Classifying and Grouping Changes ---")
 	groups := make(map[string][]string)
 
@@ -53,7 +57,7 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[
 				}
 			}
 		}
-		
+
 		groupKey := commitType
 		if scope != "" {
 			groupKey = fmt.Sprintf("%s(%s)", commitType, scope)
@@ -62,7 +66,11 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData) map[
 	}
 
 	for groupKey, files := range groups {
-		fmt.Printf("Group '%s': %v\n", groupKey, files)
+		if verbose {
+			fmt.Printf("Verbose: Group '%s': %v\n", groupKey, files)
+		} else {
+			fmt.Printf("Group '%s': %v\n", groupKey, files)
+		}
 	}
 
 	return groups
