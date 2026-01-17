@@ -3,7 +3,6 @@ package logger
 import (
 	"encoding/json" // Added for JSON marshaling
 	"fmt"
-	"log"
 	"os"
 	"time" // Added for timestamps
 )
