@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/urstruelysv/autocommit-cli/internal/logger"
 )
 
 const (
@@ -18,10 +20,8 @@ const (
 )
 
 // GenerateAICommitMessage uses the Gemini API (via HTTP POST) to generate a commit message based on the provided diff.
-func GenerateAICommitMessage(diff string, verbose bool) (string, error) {
-	if verbose {
-		fmt.Println("Verbose: Generating AI commit message...")
-	}
+func GenerateAICommitMessage(log logger.Logger, diff string) (string, error) {
+	log.Debug("Generating AI commit message...")
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("GEMINI_API_KEY environment variable not set")
@@ -38,9 +38,7 @@ Example: feat: add new user authentication endpoint
 Diff:
 %s`, diff)
 
-	if verbose {
-		fmt.Printf("Verbose: Prompt:\n%s\n", prompt)
-	}
+	log.Debug("Prompt:\n%s", prompt)
 
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"contents": []map[string]interface{}{
@@ -55,7 +53,7 @@ Diff:
 		return "", fmt.Errorf("error marshalling request body: %w", err)
 	}
 
-	resp, err := postWithRetry(url, requestBody, verbose)
+	resp, err := postWithRetry(log, url, requestBody)
 	if err != nil {
 		return "", err
 	}
@@ -66,9 +64,7 @@ Diff:
 		return "", fmt.Errorf("error reading API response: %w", err)
 	}
 
-	if verbose {
-		fmt.Printf("Verbose: API Response: %s\n", string(responseBody))
-	}
+	log.Debug("API Response: %s", string(responseBody))
 
 	var geminiResponse struct {
 		Candidates []struct {
@@ -86,9 +82,7 @@ Diff:
 
 	if len(geminiResponse.Candidates) > 0 && len(geminiResponse.Candidates[0].Content.Parts) > 0 {
 		message := strings.TrimSpace(geminiResponse.Candidates[0].Content.Parts[0].Text)
-		if verbose {
-			fmt.Printf("Verbose: Generated commit message: %s\n", message)
-		}
+		log.Debug("Generated commit message: %s", message)
 		return message, nil
 	}
 
@@ -96,15 +90,13 @@ Diff:
 }
 
 // postWithRetry sends a POST request with a retry mechanism for rate limiting.
-func postWithRetry(url string, body []byte, verbose bool) (*http.Response, error) {
+func postWithRetry(log logger.Logger, url string, body []byte) (*http.Response, error) {
 	var resp *http.Response
 	var err error
 	backoff := initialBackoff
 
 	for i := 0; i < maxRetries; i++ {
-		if verbose {
-			fmt.Printf("Verbose: Making API request (attempt %d)\n", i+1)
-		}
+		log.Debug("Making API request (attempt %d)", i+1)
 		resp, err = http.Post(url, "application/json", bytes.NewBuffer(body))
 		if err != nil {
 			return nil, fmt.Errorf("error making API request: %w", err)
@@ -116,7 +108,7 @@ func postWithRetry(url string, body []byte, verbose bool) (*http.Response, error
 
 		if resp.StatusCode == http.StatusTooManyRequests {
 			resp.Body.Close()
-			fmt.Printf("Rate limit exceeded. Retrying in %v...\n", backoff)
+			log.Info("Rate limit exceeded. Retrying in %v...", backoff)
 			time.Sleep(backoff)
 			backoff *= 2
 			continue

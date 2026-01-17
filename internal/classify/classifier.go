@@ -2,18 +2,16 @@ package classify
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
 
 	"github.com/urstruelysv/autocommit-cli/internal/history"
+	"github.com/urstruelysv/autocommit-cli/internal/logger"
 )
 
-func ClassifyAndGroupChanges(changes string, learnedData history.LearnData, verbose bool) map[string][]string {
-	if verbose {
-		fmt.Println("Verbose: Classifying and grouping changes...")
-	}
-	fmt.Println("\n--- Classifying and Grouping Changes ---")
+func ClassifyAndGroupChanges(log logger.Logger, changes string, learnedData history.LearnData) map[string][]string {
+	log.Debug("Classifying and grouping changes...")
+	log.Info("\n--- Classifying and Grouping Changes ---")
 	groups := make(map[string][]string)
 
 	lines := strings.Split(changes, "\n")
@@ -43,7 +41,7 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData, verb
 			diffCmd := exec.Command("git", "diff", "--", filePath)
 			diffOutput, err := diffCmd.Output()
 			if err != nil {
-				log.Printf("Could not get diff for %s: %v", filePath, err)
+				log.Error("Could not get diff for %s: %v", filePath, err)
 			} else {
 				diff := strings.ToLower(string(diffOutput))
 				if strings.Contains(diff, "fix") || strings.Contains(diff, "bug") || strings.Contains(diff, "error") {
@@ -66,11 +64,8 @@ func ClassifyAndGroupChanges(changes string, learnedData history.LearnData, verb
 	}
 
 	for groupKey, files := range groups {
-		if verbose {
-			fmt.Printf("Verbose: Group '%s': %v\n", groupKey, files)
-		} else {
-			fmt.Printf("Group '%s': %v\n", groupKey, files)
-		}
+		log.Debug("Group '%s': %v", groupKey, files)
+		log.Info("Group '%s': %v", groupKey, files)
 	}
 
 	return groups

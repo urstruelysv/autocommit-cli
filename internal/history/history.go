@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/urstruelysv/autocommit-cli/internal/logger"
 )
 
 // LearnData holds the learned scopes and types
@@ -16,10 +17,8 @@ type LearnData struct {
 	Types  map[string]int
 }
 
-func SaveLearnedData(data LearnData, verbose bool) error {
-	if verbose {
-		fmt.Println("Verbose: Saving learned data...")
-	}
+func SaveLearnedData(log logger.Logger, data LearnData) error {
+	log.Debug("Saving learned data...")
 	cacheFilePath := ".autocommit_cache"
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
@@ -30,18 +29,13 @@ func SaveLearnedData(data LearnData, verbose bool) error {
 	if err != nil {
 		return fmt.Errorf("failed to write learned data to %s: %w", cacheFilePath, err)
 	}
-	if verbose {
-		fmt.Printf("Verbose: Learned data saved to %s\n", cacheFilePath)
-	} else {
-		fmt.Printf("Learned data saved to %s\n", cacheFilePath)
-	}
+	log.Debug("Learned data saved to %s", cacheFilePath)
+	log.Info("Learned data saved to %s", cacheFilePath)
 	return nil
 }
 
-func LoadLearnedData(verbose bool) (LearnData, error) {
-	if verbose {
-		fmt.Println("Verbose: Loading learned data...")
-	}
+func LoadLearnedData(log logger.Logger) (LearnData, error) {
+	log.Debug("Loading learned data...")
 	cacheFilePath := ".autocommit_cache"
 	jsonData, err := ioutil.ReadFile(cacheFilePath)
 	if err != nil {
@@ -53,23 +47,18 @@ func LoadLearnedData(verbose bool) (LearnData, error) {
 	if err != nil {
 		return LearnData{}, fmt.Errorf("failed to unmarshal learned data from %s: %w", cacheFilePath, err)
 	}
-	if verbose {
-		fmt.Printf("Verbose: Learned data loaded from %s\n", cacheFilePath)
-	} else {
-		fmt.Printf("Learned data loaded from %s\n", cacheFilePath)
-	}
+	log.Debug("Learned data loaded from %s", cacheFilePath)
+	log.Info("Learned data loaded from %s", cacheFilePath)
 	return data, nil
 }
 
-func LearnFromHistory(verbose bool) LearnData {
-	if verbose {
-		fmt.Println("Verbose: Learning from commit history...")
-	}
-	fmt.Println("\n--- Learning from Commit History ---")
+func LearnFromHistory(log logger.Logger) LearnData {
+	log.Debug("Learning from commit history...")
+	log.Info("\n--- Learning from Commit History ---")
 	logCmd := exec.Command("git", "log", "--pretty=format:%s")
 	logOutput, err := logCmd.Output()
 	if err != nil {
-		log.Printf("Could not get git log: %v", err)
+		log.Error("Could not get git log: %v", err)
 		return LearnData{}
 	}
 
@@ -97,37 +86,25 @@ func LearnFromHistory(verbose bool) LearnData {
 	}
 
 	if len(scopes) > 0 {
-		if verbose {
-			fmt.Println("Verbose: Found potential scopes.")
-		} else {
-			fmt.Println("Found potential scopes:")
-		}
+		log.Debug("Found potential scopes.")
+		log.Info("Found potential scopes:")
 		for scope, count := range scopes {
-			fmt.Printf("- %s (%d)\n", scope, count)
+			log.Info("- %s (%d)", scope, count)
 		}
 	} else {
-		if verbose {
-			fmt.Println("Verbose: No conventional commit scopes found in history.")
-		} else {
-			fmt.Println("No conventional commit scopes found in history.")
-		}
+		log.Debug("No conventional commit scopes found in history.")
+		log.Info("No conventional commit scopes found in history.")
 	}
 
 	if len(types) > 0 {
-		if verbose {
-			fmt.Println("Verbose: Found potential types.")
-		} else {
-			fmt.Println("Found potential types:")
-		}
+		log.Debug("Found potential types.")
+		log.Info("Found potential types:")
 		for t, count := range types {
-			fmt.Printf("- %s (%d)\n", t, count)
+			log.Info("- %s (%d)", t, count)
 		}
 	} else {
-		if verbose {
-			fmt.Println("Verbose: No conventional commit types found in history.")
-		} else {
-			fmt.Println("No conventional commit types found in history.")
-		}
+		log.Debug("No conventional commit types found in history.")
+		log.Info("No conventional commit types found in history.")
 	}
 
 	return LearnData{Scopes: scopes, Types: types}

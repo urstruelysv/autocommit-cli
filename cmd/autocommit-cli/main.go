@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -14,6 +13,7 @@ import (
 	"github.com/urstruelysv/autocommit-cli/internal/classify"
 	"github.com/urstruelysv/autocommit-cli/internal/git"
 	"github.com/urstruelysv/autocommit-cli/internal/history"
+	"github.com/urstruelysv/autocommit-cli/internal/logger"
 )
 
 type AppMode struct {
@@ -33,105 +33,112 @@ func main() {
 	// Load .env file
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found, proceeding without it.")
+		// In CI mode, we don't want to see this message
+		if !*ciFlag {
+			fmt.Println("No .env file found, proceeding without it.")
+		}
 	}
 
 	var appMode AppMode
+	var log logger.Logger
+
 	if *ciFlag {
 		appMode = AppMode{CI: true, AICommit: true}
+		log = logger.NewJSONLogger()
 	} else {
 		appMode = promptForMode()
+		log = logger.NewHumanReadableLogger()
 	}
 
-	fmt.Println("AutoCommit AI (Go version) running...")
+	log.Info("AutoCommit AI (Go version) running...")
 
 	// Perform initial git status checks
-	if err := git.CheckGitStatus(appMode.Verbose); err != nil {
-		log.Fatalf("Git status check failed: %v", err)
+	if err := git.CheckGitStatus(log); err != nil {
+		log.Fatal(1, "Git status check failed: %v", err)
 	}
 
-	fmt.Println("Arguments provided:")
+	log.Info("Arguments provided:")
 
 	if appMode.Review {
-		fmt.Println("- Review mode enabled.")
+		log.Info("- Review mode enabled.")
 	}
 	if appMode.NoPush {
-		fmt.Println("- No-push mode enabled.")
+		log.Info("- No-push mode enabled.")
 	}
 	if appMode.CI {
-		fmt.Println("- CI mode enabled.")
+		log.Info("- CI mode enabled.")
 	}
 	if appMode.Verbose {
-		fmt.Println("- Verbose mode enabled.")
+		log.Info("- Verbose mode enabled.")
 	}
 	if appMode.AICommit {
-		fmt.Println("- AI Commit mode enabled.")
+		log.Info("- AI Commit mode enabled.")
 	}
 
 	var learnedData history.LearnData
 
 	// Try to load learned data from cache
-	learnedData, err = history.LoadLearnedData(appMode.Verbose)
+	learnedData, err = history.LoadLearnedData(log)
 	if err != nil {
-		fmt.Println("No cached history data found or error loading. Learning from history...")
-		learnedData = history.LearnFromHistory(appMode.Verbose)
+		log.Info("No cached history data found or error loading. Learning from history...")
+		learnedData = history.LearnFromHistory(log)
 		if len(learnedData.Scopes) > 0 || len(learnedData.Types) > 0 {
-			fmt.Println("History learning complete.")
+			log.Info("History learning complete.")
 			// Save newly learned data to cache
-			if err := history.SaveLearnedData(learnedData, appMode.Verbose); err != nil {
-				log.Printf("Failed to save learned data: %v", err)
+			if err := history.SaveLearnedData(log, learnedData); err != nil {
+				log.Error("Failed to save learned data: %v", err)
 			}
 		} else {
-			fmt.Println("No history data learned.")
+			log.Info("No history data learned.")
 		}
 	} else {
-		fmt.Println("History data loaded from cache.")
+		log.Info("History data loaded from cache.")
 	}
 
-	fmt.Println("\n--- Change Detection ---")
-	changes, err := git.DetectChanges(appMode.Verbose)
+	log.Info("\n--- Change Detection ---")
+	changes, err := git.DetectChanges(log)
 	if err != nil {
-		log.Fatalf("Failed to detect changes: %v", err)
+		log.Fatal(1, "Failed to detect changes: %v", err)
 	}
 
 	if changes != "" {
 		if appMode.AICommit {
 			// Check for API key
 			if os.Getenv("GEMINI_API_KEY") == "" {
-				log.Fatalf("GEMINI_API_KEY environment variable not set. Please create a .env file and add your API key.")
+				log.Fatal(1, "GEMINI_API_KEY environment variable not set. Please create a .env file and add your API key.")
 			}
 			// AI-driven commit message for all changes
-			fmt.Println("\n--- AI Commit Message Generation ---")
-			message, err := ai.GenerateAICommitMessage(changes, appMode.Verbose)
+			log.Info("\n--- AI Commit Message Generation ---")
+			message, err := ai.GenerateAICommitMessage(log, changes)
 			if err != nil {
-				log.Fatalf("Failed to generate AI commit message: %v", err)
+				log.Fatal(1, "Failed to generate AI commit message: %v", err)
 			}
 
 			if appMode.Review {
-				fmt.Println("\n--- Review Commit ---")
-				fmt.Printf("Commit message:\n%s\n", message)
-				fmt.Println("\nFiles to be committed:")
-				fmt.Println(changes)
+				log.Info("\n--- Review Commit ---")
+				log.Info("Commit message:\n%s", message)
+				log.Info("\nFiles to be committed:")
+				log.Info(changes)
 				fmt.Print("Do you want to proceed with this commit? (y/n): ")
 				reader := bufio.NewReader(os.Stdin)
 				input, _ := reader.ReadString('\n')
 				if strings.TrimSpace(input) != "y" {
-					fmt.Println("Commit aborted.")
+					log.Info("Commit aborted.")
 					return
 				}
 			}
 
-			if err := git.CommitChanges(message, []string{".", "--all"}, appMode.Verbose); err != nil { // Commit all changes
-				log.Fatalf("Failed to commit changes with AI message: %v", err)
+			if err := git.CommitChanges(log, message, []string{".", "--all"}); err != nil { // Commit all changes
+				log.Fatal(1, "Failed to commit changes with AI message: %v", err)
 			}
 			if !appMode.NoPush {
-				if err := git.PushChanges(appMode.Verbose); err != nil {
-					log.Fatalf("Failed to push changes: %v", err)
+				if err := git.PushChanges(log); err != nil {
+					log.Fatal(1, "Failed to push changes: %v", err)
 				}
 			}
 		} else {
 			// Rule-based and history-aware commit message generation (existing logic)
-			groups := classify.ClassifyAndGroupChanges(changes, learnedData, appMode.Verbose)
+			groups := classify.ClassifyAndGroupChanges(log, changes, learnedData)
 
 			summaries := map[string]string{
 				"feat":     "implement new features",
@@ -170,36 +177,36 @@ func main() {
 				}
 
 				if appMode.Review {
-					fmt.Println("\n--- Review Commit ---")
-					fmt.Printf("Commit message:\n%s\n", message)
-					fmt.Println("\nFiles to be committed:")
+					log.Info("\n--- Review Commit ---")
+					log.Info("Commit message:\n%s", message)
+					log.Info("\nFiles to be committed:")
 					for _, file := range files {
-						fmt.Println(file)
+						log.Info(file)
 					}
 					fmt.Print("Do you want to proceed with this commit? (y/n): ")
 					reader := bufio.NewReader(os.Stdin)
 					input, _ := reader.ReadString('\n')
 					if strings.TrimSpace(input) != "y" {
-						fmt.Println("Commit aborted.")
+						log.Info("Commit aborted.")
 						continue
 					}
 				}
 
-				if err := git.CommitChanges(message, files, appMode.Verbose); err != nil {
-					log.Printf("Failed to commit group '%s'. Aborting.", groupKey)
+				if err := git.CommitChanges(log, message, files); err != nil {
+					log.Error("Failed to commit group '%s'. Aborting.", groupKey)
 					return
 				}
 				commitCount++
 			}
 
 			if commitCount > 0 && !appMode.NoPush {
-				if err := git.PushChanges(appMode.Verbose); err != nil {
-					log.Fatalf("Failed to push changes: %v", err)
+				if err := git.PushChanges(log); err != nil {
+					log.Fatal(1, "Failed to push changes: %v", err)
 				}
 			}
 		}
 	} else {
-		fmt.Println("\nNo changes to commit. Exiting.")
+		log.Info("\nNo changes to commit. Exiting.")
 	}
 }
 
