@@ -12,13 +12,16 @@ import (
 )
 
 const (
-	geminiAPIURL    = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%s"
-	maxRetries      = 5
-	initialBackoff  = 2 * time.Second
+	geminiAPIURL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%s"
+	maxRetries     = 5
+	initialBackoff = 2 * time.Second
 )
 
 // GenerateAICommitMessage uses the Gemini API (via HTTP POST) to generate a commit message based on the provided diff.
-func GenerateAICommitMessage(diff string) (string, error) {
+func GenerateAICommitMessage(diff string, verbose bool) (string, error) {
+	if verbose {
+		fmt.Println("Verbose: Generating AI commit message...")
+	}
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("GEMINI_API_KEY environment variable not set")
@@ -35,6 +38,10 @@ Example: feat: add new user authentication endpoint
 Diff:
 %s`, diff)
 
+	if verbose {
+		fmt.Printf("Verbose: Prompt:\n%s\n", prompt)
+	}
+
 	requestBody, err := json.Marshal(map[string]interface{}{
 		"contents": []map[string]interface{}{
 			{
@@ -48,7 +55,7 @@ Diff:
 		return "", fmt.Errorf("error marshalling request body: %w", err)
 	}
 
-	resp, err := postWithRetry(url, requestBody)
+	resp, err := postWithRetry(url, requestBody, verbose)
 	if err != nil {
 		return "", err
 	}
@@ -57,6 +64,10 @@ Diff:
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("error reading API response: %w", err)
+	}
+
+	if verbose {
+		fmt.Printf("Verbose: API Response: %s\n", string(responseBody))
 	}
 
 	var geminiResponse struct {
@@ -74,19 +85,26 @@ Diff:
 	}
 
 	if len(geminiResponse.Candidates) > 0 && len(geminiResponse.Candidates[0].Content.Parts) > 0 {
-		return strings.TrimSpace(geminiResponse.Candidates[0].Content.Parts[0].Text), nil
+		message := strings.TrimSpace(geminiResponse.Candidates[0].Content.Parts[0].Text)
+		if verbose {
+			fmt.Printf("Verbose: Generated commit message: %s\n", message)
+		}
+		return message, nil
 	}
 
 	return "", fmt.Errorf("no content generated from Gemini")
 }
 
 // postWithRetry sends a POST request with a retry mechanism for rate limiting.
-func postWithRetry(url string, body []byte) (*http.Response, error) {
+func postWithRetry(url string, body []byte, verbose bool) (*http.Response, error) {
 	var resp *http.Response
 	var err error
 	backoff := initialBackoff
 
 	for i := 0; i < maxRetries; i++ {
+		if verbose {
+			fmt.Printf("Verbose: Making API request (attempt %d)\n", i+1)
+		}
 		resp, err = http.Post(url, "application/json", bytes.NewBuffer(body))
 		if err != nil {
 			return nil, fmt.Errorf("error making API request: %w", err)
