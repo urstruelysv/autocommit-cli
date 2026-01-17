@@ -1,13 +1,13 @@
 package history
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os/exec"
 	"regexp"
 	"strings"
-	"encoding/json"
 )
 
 // LearnData holds the learned scopes and types
@@ -16,7 +16,10 @@ type LearnData struct {
 	Types  map[string]int
 }
 
-func SaveLearnedData(data LearnData) error {
+func SaveLearnedData(data LearnData, verbose bool) error {
+	if verbose {
+		fmt.Println("Verbose: Saving learned data...")
+	}
 	cacheFilePath := ".autocommit_cache"
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
@@ -27,11 +30,18 @@ func SaveLearnedData(data LearnData) error {
 	if err != nil {
 		return fmt.Errorf("failed to write learned data to %s: %w", cacheFilePath, err)
 	}
-	fmt.Printf("Learned data saved to %s\n", cacheFilePath)
+	if verbose {
+		fmt.Printf("Verbose: Learned data saved to %s\n", cacheFilePath)
+	} else {
+		fmt.Printf("Learned data saved to %s\n", cacheFilePath)
+	}
 	return nil
 }
 
-func LoadLearnedData() (LearnData, error) {
+func LoadLearnedData(verbose bool) (LearnData, error) {
+	if verbose {
+		fmt.Println("Verbose: Loading learned data...")
+	}
 	cacheFilePath := ".autocommit_cache"
 	jsonData, err := ioutil.ReadFile(cacheFilePath)
 	if err != nil {
@@ -43,11 +53,18 @@ func LoadLearnedData() (LearnData, error) {
 	if err != nil {
 		return LearnData{}, fmt.Errorf("failed to unmarshal learned data from %s: %w", cacheFilePath, err)
 	}
-	fmt.Printf("Learned data loaded from %s\n", cacheFilePath)
+	if verbose {
+		fmt.Printf("Verbose: Learned data loaded from %s\n", cacheFilePath)
+	} else {
+		fmt.Printf("Learned data loaded from %s\n", cacheFilePath)
+	}
 	return data, nil
 }
 
-func LearnFromHistory() LearnData {
+func LearnFromHistory(verbose bool) LearnData {
+	if verbose {
+		fmt.Println("Verbose: Learning from commit history...")
+	}
 	fmt.Println("\n--- Learning from Commit History ---")
 	logCmd := exec.Command("git", "log", "--pretty=format:%s")
 	logOutput, err := logCmd.Output()
@@ -80,23 +97,38 @@ func LearnFromHistory() LearnData {
 	}
 
 	if len(scopes) > 0 {
-		fmt.Println("Found potential scopes:")
+		if verbose {
+			fmt.Println("Verbose: Found potential scopes.")
+		} else {
+			fmt.Println("Found potential scopes:")
+		}
 		for scope, count := range scopes {
 			fmt.Printf("- %s (%d)\n", scope, count)
 		}
 	} else {
-		fmt.Println("No conventional commit scopes found in history.")
+		if verbose {
+			fmt.Println("Verbose: No conventional commit scopes found in history.")
+		} else {
+			fmt.Println("No conventional commit scopes found in history.")
+		}
 	}
 
 	if len(types) > 0 {
-		fmt.Println("Found potential types:")
+		if verbose {
+			fmt.Println("Verbose: Found potential types.")
+		} else {
+			fmt.Println("Found potential types:")
+		}
 		for t, count := range types {
 			fmt.Printf("- %s (%d)\n", t, count)
 		}
 	} else {
-		fmt.Println("No conventional commit types found in history.")
+		if verbose {
+			fmt.Println("Verbose: No conventional commit types found in history.")
+		} else {
+			fmt.Println("No conventional commit types found in history.")
+		}
 	}
 
 	return LearnData{Scopes: scopes, Types: types}
 }
-
