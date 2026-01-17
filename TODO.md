@@ -19,6 +19,10 @@ This document outlines the remaining tasks and areas for improvement for the Aut
 - [x] **Auto-detect Commit Guides:** Implemented logic to automatically detect `CONTRIBUTING.md` and `commitlint.config.*` files.
 - [x] **Parse and Apply Rules:** Developed functionality to parse commit guides using regex-based extraction and compile them into static rules (specifically, a commit message regex).
 
+### 1.4 Other Features
+- [x] **Review & Edit Mode:** Optional interactive mode to review and edit proposed commits before finalization.
+- [x] **Verbose Mode:** Enable verbose output for debugging purposes.
+
 ## 2. Safeguards & Abort Conditions (ACTION_PLAN 8)
 
 
@@ -62,3 +66,4 @@ This document outlines the remaining tasks and areas for improvement for the Aut
 - [x] Added support for `.env` files to manage environment variables.
 - [x] Implemented a retry mechanism with exponential backoff for API calls.
 - [x] Handled `EOF` error in the interactive prompt.
+- [x] **Default to AI:** The application now defaults to using the AI to generate commit messages.

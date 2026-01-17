@@ -77,13 +77,15 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 *   **Project Structure:** Refactored into `cmd/autocommit-cli` and `internal/` packages (`git`, `classify`, `history`, `ai`).
 *   **Change Detection:** Automatically detects staged and unstaged changes in a Git repository.
-*   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit.
+*   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit. (Note: This is not used when AI-mode is enabled).
 *   **Basic Commit Message Generation:** Generates conventional commit messages (e.g., `fix: apply automatic fixes`) for each logical group, now incorporating module scopes.
-*   **AI-Assisted Commit Message Generation:** (Optional, via `--ai-commit` flag) Uses the Gemini API to generate a single commit message for all changes.
+*   **AI-Assisted Commit Message Generation:** (Default) Uses the Gemini API to generate a single commit message for all changes. This will create a single commit for all the changes and does not perform logical commit grouping.
 *   **Safe Commit & Push:** Stages and commits changes, with safeguards to prevent pushing from a detached HEAD or to a branch without a configured remote. Includes a `--no-push` flag.
 *   **History Learning (Initial):** Extracts potential commit scopes and types from `git log` for future intelligent message generation.
 *   **Interactive Mode Selection:** Prompts the user to select a mode of operation.
 *   **CI/CD Mode:** `--ci` flag for non-interactive, deterministic execution in CI environments.
+*   **Review & Edit Mode:** Optional interactive mode to review and edit proposed commits before finalization.
+*   **Verbose Mode:** Enable verbose output for debugging purposes.
 
 ### Planned (from PRD)
 
@@ -91,7 +93,6 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   **Intelligent Change Classification:** Advanced language-aware heuristics and learned patterns.
 *   **Learning From History:** Continuously improves commit quality based on past commits and guidelines.
 *   **Commit Guide Awareness:** Automatically detects and adheres to project-specific commit guidelines.
-*   **Review & Edit Mode:** Optional interactive mode to review and edit proposed commits before finalization.
 
 ---
 
@@ -151,14 +152,14 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 When you run the application, you will be prompted to select a mode of operation:
 
 ```
-Select a mode to run autocommit-cli:
-1. Normal - Create commits and push them to the remote repository.
-2. Review - Inspect commits before they are made.
-3. No-push - Create commits but do not push them to the remote repository.
-4. CI - Non-interactive, deterministic execution for CI environments.
-5. Verbose - Enable verbose output for debugging purposes.
-6. AI-Commit - Use AI to generate commit messages.
-Enter your choice (1-6):
+Select a mode to run autocommit-cli (default: AI-Commit):
+1. AI-Commit (default) - Use AI to generate commit messages.
+2. Normal - Create commits without AI.
+3. Review - Inspect commits before they are made.
+4. No-push - Create commits but do not push them to the remote repository.
+5. CI - Non-interactive, deterministic execution for CI environments.
+6. Verbose - Enable verbose output for debugging purposes.
+Enter your choice (1-6, or press Enter for default):
 ```
 
 ### CI Mode
@@ -173,13 +174,14 @@ This will run the application in CI mode, which is non-interactive and determini
 
 ### Examples
 
-*   **Automatically commit and push all changes:**
+*   **Automatically commit and push all changes with AI:**
+    Run the application and press Enter to select the default "AI-Commit" mode.
+*   **Commit changes without AI:**
     Run the application and select "Normal" mode.
+*   **Review commits before they are made:**
+    Run the application and select "Review" mode.
 *   **Commit changes without pushing:**
     Run the application and select "No-push" mode.
-*   **Generate commit message using AI:**
-    Run the application and select "AI-Commit" mode.
-    *(Ensure `GEMINI_API_KEY` is set)*
 *   **Run in CI mode:**
     ```bash
     autocommit-cli --ci
