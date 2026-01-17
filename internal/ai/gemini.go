@@ -8,9 +8,14 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
-const geminiAPIURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%s"
+const (
+	geminiAPIURL    = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%s"
+	maxRetries      = 5
+	initialBackoff  = 2 * time.Second
+)
 
 // GenerateAICommitMessage uses the Gemini API (via HTTP POST) to generate a commit message based on the provided diff.
 func GenerateAICommitMessage(diff string) (string, error) {
@@ -43,16 +48,11 @@ Diff:
 		return "", fmt.Errorf("error marshalling request body: %w", err)
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	resp, err := postWithRetry(url, requestBody)
 	if err != nil {
-		return "", fmt.Errorf("error making API request: %w", err)
+		return "", err
 	}
 	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		return "", fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
-	}
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -78,4 +78,36 @@ Diff:
 	}
 
 	return "", fmt.Errorf("no content generated from Gemini")
+}
+
+// postWithRetry sends a POST request with a retry mechanism for rate limiting.
+func postWithRetry(url string, body []byte) (*http.Response, error) {
+	var resp *http.Response
+	var err error
+	backoff := initialBackoff
+
+	for i := 0; i < maxRetries; i++ {
+		resp, err = http.Post(url, "application/json", bytes.NewBuffer(body))
+		if err != nil {
+			return nil, fmt.Errorf("error making API request: %w", err)
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			return resp, nil
+		}
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			resp.Body.Close()
+			fmt.Printf("Rate limit exceeded. Retrying in %v...\n", backoff)
+			time.Sleep(backoff)
+			backoff *= 2
+			continue
+		}
+
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	return nil, fmt.Errorf("exceeded max retries")
 }
