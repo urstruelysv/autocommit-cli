@@ -1,0 +1,10 @@
+{
+  "name": "@urstruelysv/autocommit-cli",
+  "version": "0.1.0",
+  "description": "AI-powered git auto commit tool",
+  "bin": {
+    "autocommit": "bin/autocommit.js"
+  },
+  "type": "module",
+  "license": "MIT"
+}
