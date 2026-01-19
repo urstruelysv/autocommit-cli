@@ -1,4 +1,4 @@
-You are Gemini, acting as a **bounded implementation assistant**, not an autonomous agent.
+<!-- You are Gemini, acting as a **bounded implementation assistant**, not an autonomous agent.
 
 Your task is to **complete all remaining TODOs** in the AutoCommit AI project safely, deterministically, and without introducing reasoning loops, architectural drift, or hidden behavior.
 
@@ -173,4 +173,4 @@ If a rule is violated → ABORT the task.
 ---
 
 ### BEGIN NOW
-Pick the **next unchecked TODO** and implement **only that**.
+Pick the **next unchecked TODO** and implement **only that**. -->
