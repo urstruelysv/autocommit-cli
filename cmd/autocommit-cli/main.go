@@ -19,19 +19,27 @@ import (
 
 // printWelcomeMessage prints a welcome message with ASCII art and tips.
 func printWelcomeMessage() {
-	red := "\033[31m"
+	brightRed := "\033[91m" // Bright Red
 	reset := "\033[0m"
 
-	asciiArt := `
-` + red + `  _         _   _                               _ _
- / \  _   _| |_| |__   ___  _ __ ___   ___ _ __(_) |_
-/ _ \| | | | __| '_ \ / _ \| '_ ` + "`" + ` _ \ / _ \ '__| | __|
-/ ___ \ |_| | |_| | | | (_) | | | | | |  __/ |  | | |_
-/_/   \_\__,_|\__|_| |_|\___|_| |_| |_|\___|_|  |_|\__|
-` + reset + `
+	asciiArtLines := []string{
+		".------..------..------..------..------..------..------..------..------..------.",
+		"|A.--. ||U.--. ||T.--. ||O.--. ||C.--. ||O.--. ||M.--. ||M.--. ||I.--. ||T.--. |",
+		"| (\\/) || (\\/) || (\\/) || (\\/) || (\\/) || (\\/) || (\\/) || (\\/) || (\\/) || (\\/) |",
+		"| :\\/: || :\\/: || :\\/: || :\\/: || :\\/: || :\\/: || :\\/: || :\\/: || :\\/: || :\\/: |",
+		"| '--'A|| '--'U|| '--'T|| '--'O|| '--'C|| '--'O|| '--'M|| '--'M|| '--'I|| '--'T|",
+		"`------``------``------``------``------``------``------``------``------``------`",
+		".------..------..------.",
+		"|C.--. ||L.--. ||I.--. |",
+		"| (\\/) || (\\/) || (\\/) |",
+		"| :\\/: || :\\/: || :\\/: |",
+		"| '--'C|| '--'L|| '--'I|",
+		"`------``------``------`",
+	}
 
-`
-	fmt.Println(asciiArt)
+	asciiArt := strings.Join(asciiArtLines, "\n")
+
+	fmt.Printf("%s%s%s\n", brightRed, asciiArt, reset)
 	fmt.Println("Welcome to autocommit-cli!")
 	fmt.Println("\nTips to get started:")
 	fmt.Println("  - Run 'autocommit-cli --help' to see available commands.")
@@ -46,6 +54,46 @@ type AppMode struct {
 	CI       bool
 	Verbose  bool
 	AICommit bool
+}
+
+// promptForMode prompts the user to select a mode and returns their choice.
+func promptForMode() AppMode {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("Select a mode to run autocommit-cli (default: AI-Commit):")
+	fmt.Println("1. AI-Commit (default) - Use AI to generate commit messages.")
+	fmt.Println("2. Normal - Create commits without AI.")
+	fmt.Println("3. Review - Inspect commits before they are made.")
+	fmt.Println("4. No-push - Create commits but do not push them to the remote repository.")
+	fmt.Println("5. Verbose - Enable verbose output for debugging purposes.")
+	fmt.Print("Enter your choice (1-5, or press Enter for default): ")
+
+	for {
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				fmt.Println("\nNo input received, exiting.")
+				os.Exit(0)
+			}
+			log.Fatalf("Failed to read input: %v", err)
+		}
+		input = strings.TrimSpace(input)
+		switch input {
+		case "":
+			return AppMode{AICommit: true}
+		case "1":
+			return AppMode{AICommit: true}
+		case "2":
+			return AppMode{AICommit: false}
+		case "3":
+			return AppMode{Review: true, AICommit: true}
+		case "4":
+			return AppMode{NoPush: true, AICommit: true}
+		case "5":
+			return AppMode{Verbose: true, AICommit: true}
+		default:
+			fmt.Print("Invalid choice. Please enter a number between 1 and 5: ")
+		}
+	}
 }
 
 // Application entry point
@@ -221,7 +269,7 @@ func main() {
 					log.Error("Failed to commit group '%s'. Aborting.", groupKey)
 					return
 				}
-				commitCount++;
+				commitCount++
 			}
 
 			if commitCount > 0 && !appMode.NoPush {
@@ -232,45 +280,5 @@ func main() {
 		}
 	} else {
 		log.Info("\nNo changes to commit. Exiting.")
-	}
-}
-
-// promptForMode prompts the user to select a mode and returns their choice.
-func promptForMode() AppMode {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Select a mode to run autocommit-cli (default: AI-Commit):")
-	fmt.Println("1. AI-Commit (default) - Use AI to generate commit messages.")
-	fmt.Println("2. Normal - Create commits without AI.")
-	fmt.Println("3. Review - Inspect commits before they are made.")
-	fmt.Println("4. No-push - Create commits but do not push them to the remote repository.")
-	fmt.Println("5. Verbose - Enable verbose output for debugging purposes.")
-	fmt.Print("Enter your choice (1-5, or press Enter for default): ")
-
-	for {
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println("\nNo input received, exiting.")
-				os.Exit(0)
-			}
-			log.Fatalf("Failed to read input: %v", err)
-		}
-		input = strings.TrimSpace(input)
-		switch input {
-		case "":
-			return AppMode{AICommit: true}
-		case "1":
-			return AppMode{AICommit: true}
-		case "2":
-			return AppMode{AICommit: false}
-		case "3":
-			return AppMode{Review: true, AICommit: true}
-		case "4":
-			return AppMode{NoPush: true, AICommit: true}
-		case "5":
-			return AppMode{Verbose: true, AICommit: true}
-		default:
-			fmt.Print("Invalid choice. Please enter a number between 1 and 5: ")
-		}
 	}
 }
