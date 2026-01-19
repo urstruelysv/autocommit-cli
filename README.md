@@ -75,6 +75,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ### Current (Go MVP)
 
+*   **Easy Installation:** Homebrew, PowerShell/Scoop/Winget, single binary, npm/pip (via wrapper), VS Code Extension.
 *   **Project Structure:** Refactored into `cmd/autocommit-cli` and `internal/` packages (`git`, `classify`, `history`, `ai`).
 *   **Change Detection:** Automatically detects staged and unstaged changes in a Git repository.
 *   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit. (Note: This is not used when AI-mode is enabled).
@@ -88,8 +89,6 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   **Verbose Mode:** Enable verbose output for debugging purposes.
 
 ### Planned (from PRD)
-
-*   **Easy Installation:** Homebrew, PowerShell/Scoop/Winget, single binary, npm/pip (via wrapper), VS Code Extension.
 *   **Intelligent Change Classification:** Advanced language-aware heuristics and learned patterns.
 *   **Learning From History:** Continuously improves commit quality based on past commits and guidelines.
 *   **Commit Guide Awareness:** Automatically detects and adheres to project-specific commit guidelines.
@@ -150,10 +149,10 @@ brew install autocommit-cli
 
 ### npm (Cross-platform wrapper)
 
-You can install `autocommit-cli` via npm (requires Node.js and npm installed):
+You can install `@urstruelysv/autocommit-cli` via npm (requires Node.js and npm installed):
 
 ```bash
-npm install -g autocommit-cli
+npm install -g @urstruelysv/autocommit-cli
 ```
 
 ### Single Binary Download (Coming Soon)
