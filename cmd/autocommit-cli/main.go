@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
@@ -16,6 +17,29 @@ import (
 	"github.com/urstruelysv/autocommit-cli/internal/logger"
 )
 
+// printWelcomeMessage prints a welcome message with ASCII art and tips.
+func printWelcomeMessage() {
+	red := "\033[31m"
+	reset := "\033[0m"
+
+	asciiArt := `
+` + red + `  _         _   _                               _ _
+ / \  _   _| |_| |__   ___  _ __ ___   ___ _ __(_) |_
+/ _ \| | | | __| '_ \ / _ \| '_ ` + "`" + ` _ \ / _ \ '__| | __|
+/ ___ \ |_| | |_| | | | (_) | | | | | |  __/ |  | | |_
+/_/   \_\__,_|\__|_| |_|\___|_| |_| |_|\___|_|  |_|\__|
+` + reset + `
+
+`
+	fmt.Println(asciiArt)
+	fmt.Println("Welcome to autocommit-cli!")
+	fmt.Println("\nTips to get started:")
+	fmt.Println("  - Run 'autocommit-cli --help' to see available commands.")
+	fmt.Println("  - Configure your preferences in '.autocommitrc'.")
+	fmt.Println("  - Make some changes to your git repository and run 'autocommit-cli commit'.")
+	fmt.Println("")
+}
+
 type AppMode struct {
 	Review   bool
 	NoPush   bool
@@ -26,6 +50,7 @@ type AppMode struct {
 
 // Application entry point
 func main() {
+	printWelcomeMessage()
 	// Define flags
 	ciFlag := flag.Bool("ci", false, "Enable CI mode for non-interactive, deterministic execution.")
 	flag.Parse()
@@ -196,7 +221,7 @@ func main() {
 					log.Error("Failed to commit group '%s'. Aborting.", groupKey)
 					return
 				}
-				commitCount++
+				commitCount++;
 			}
 
 			if commitCount > 0 && !appMode.NoPush {
