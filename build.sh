@@ -1,6 +1,7 @@
 #!/bin/bash
 echo "Building autocommit-cli..."
-go build -o autocommit-cli cmd/autocommit-cli/main.go
-echo "Installing autocommit-cli to /usr/local/bin..."
-sudo mv autocommit-cli /usr/local/bin/
-echo "Installation complete."
+# Ensure the bin directory exists
+mkdir -p bin
+# Build a statically linked binary
+go build -ldflags "-s -w -extldflags '-static'" -o bin/autocommit-cli cmd/autocommit-cli/main.go
+echo "Build complete. Binary located at bin/autocommit-cli"

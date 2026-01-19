@@ -137,13 +137,28 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
     chmod +x build.sh
     ./build.sh
     ```
-    This will build the application and install it in your `/usr/local/bin` directory. You will then be able to run `autocommit-cli` from anywhere in your terminal.
+    This will build the application and place the executable in the `bin/` directory within the project. You can then add this directory to your system's PATH or move the executable to a directory already in your PATH (e.g., `/usr/local/bin`) to run `autocommit-cli` from anywhere.
 
-### Future Installation Methods
+### Homebrew (macOS & Linux)
 
-*   Homebrew (macOS/Linux)
-*   Scoop/Winget (Windows)
-*   Pre-built binaries
+You can install `autocommit-cli` using Homebrew:
+
+```bash
+brew tap urstruelysv/autocommit-cli
+brew install autocommit-cli
+```
+
+### npm (Cross-platform wrapper)
+
+You can install `autocommit-cli` via npm (requires Node.js and npm installed):
+
+```bash
+npm install -g autocommit-cli
+```
+
+### Single Binary Download (Coming Soon)
+
+Pre-built binaries for various platforms will be available on the [GitHub Releases page](https://github.com/urstruelysv/autocommit-cli/releases). Download the appropriate binary for your system, make it executable, and place it in a directory included in your system's PATH.
 
 ---
 

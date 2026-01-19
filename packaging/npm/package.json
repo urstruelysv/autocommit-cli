@@ -1,0 +1,24 @@
+{
+  "name": "autocommit-cli",
+  "version": "0.1.0",
+  "description": "An AI-powered commit message generator",
+  "main": "index.js",
+  "bin": {
+    "autocommit-cli": "bin/autocommit-cli"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/urstruelysv/autocommit-cli.git"
+  },
+  "keywords": [
+    "git",
+    "commit",
+    "ai",
+    "cli"
+  ],
+  "author": "Your Name/Organization",
+  "license": "MIT"
+}
