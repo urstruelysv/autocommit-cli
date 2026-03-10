@@ -204,7 +204,15 @@ func main() {
 		}
 
 		if err != nil {
-			logg.Fatal(1, "AI commit failed: %v", err)
+			errMsg := err.Error()
+			switch {
+			case strings.Contains(errMsg, "exceeded max retries"):
+				logg.Fatal(1, "AI commit failed after multiple retries (rate limit). Try again later or set AI_FALLBACK=basic to proceed. Details: %s", errMsg)
+			case strings.Contains(errMsg, "invalid_api_key") || strings.Contains(errMsg, "Incorrect API key"):
+				logg.Fatal(1, "AI commit failed due to invalid API key. Check GROQ_API_KEY/OPENAI_API_KEY. Details: %s", errMsg)
+			default:
+				logg.Fatal(1, "AI commit failed: %v", err)
+			}
 		}
 
 		if err := git.CommitChanges(logg, message, []string{"--all"}); err != nil {
