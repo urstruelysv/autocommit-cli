@@ -93,6 +93,7 @@ func main() {
 	ciFlag := flag.Bool("ci", false, "Run in CI mode")
 	flag.Parse()
 
+	// Load environment variables from .env when present.
 	_ = godotenv.Load()
 
 	var appMode AppMode
@@ -129,6 +130,7 @@ func main() {
 	}
 
 	if appMode.AICommit {
+		// Build a richer diff for AI (staged + unstaged + untracked list).
 		aiInput, diffErr := git.GetDiffForAI(logg)
 		if diffErr != nil {
 			logg.Fatal(1, "Diff collection failed: %v", diffErr)
