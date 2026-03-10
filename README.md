@@ -97,73 +97,64 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 ## Installation
 
-### Prerequisites
+Get started with autocommit-cli in minutes. Follow these simple steps to integrate AI-powered commit messages into your workflow.
 
-*   Go (version 1.18 or higher recommended)
-*   Git (installed and configured)
-*   **Groq or OpenAI API Key:** Set `GROQ_API_KEY` (Groq) or `OPENAI_API_KEY` (OpenAI) as an environment variable or in a `.env` file.
+### Easy Installation
 
-### Running from Source (Development)
+Homebrew (macOS & Linux)
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/urstruelysv/autocommit-cli.git
-    cd autocommit-cli
-    ```
-2.  **Set up API Key:**
-    ```bash
-    # Option 1: Export as environment variable (temporary for current session)
-    export GROQ_API_KEY="YOUR_GROQ_API_KEY"
-
-    # Option 2: Create a .env file (recommended for local development)
-    echo 'GROQ_API_KEY="YOUR_GROQ_API_KEY"' > .env
-    # Then load it (e.g., using a tool like `direnv` or manually `source .env`)
-    ```
-    **Use OpenAI instead of Groq:**
-    ```bash
-    export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
-    export AI_PROVIDER="openai"
-    export OPENAI_MODEL="gpt-5-mini"
-    ```
-3.  **Run the application:**
-    ```bash
-    go run cmd/autocommit-cli/main.go
-    ```
-
-### Building and Installing the Executable
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/urstruelysv/autocommit-cli.git
-    cd autocommit-cli
-    ```
-2.  **Run the build script:**
-    ```bash
-    chmod +x build.sh
-    ./build.sh
-    ```
-    This will build the application and place the executable in the `bin/` directory within the project. You can then add this directory to your system's PATH or move the executable to a directory already in your PATH (e.g., `/usr/local/bin`) to run `autocommit-cli` from anywhere.
-
-### Homebrew (macOS & Linux)
-
-You can install `autocommit-cli` using Homebrew:
+Install the binary using Homebrew:
 
 ```bash
 brew tap urstruelysv/autocommit-cli
 brew install autocommit-cli
 ```
 
-### npm (Cross-platform wrapper)
+npm (Cross-platform)
 
-You can install `@urstruelysv/autocommit-cli` via npm (requires Node.js and npm installed):
+Install a wrapper via npm (requires Node.js):
 
 ```bash
 npm install -g @urstruelysv/autocommit-cli
 ```
 
-### Single Binary Download (Coming Soon)
+### Prerequisites
 
-Pre-built binaries for various platforms will be available on the [GitHub Releases page](https://github.com/urstruelysv/autocommit-cli/releases). Download the appropriate binary for your system, make it executable, and place it in a directory included in your system's PATH.
+*   Go (version 1.18 or higher recommended)
+*   Git (installed and configured)
+*   Groq API Key: Obtain a free API key from GroqCloud. Set it as an environment variable `GROQ_API_KEY` or in a `.env` file.
+
+### Installation from Source (Development)
+
+```bash
+# Clone the repository
+git clone https://github.com/urstruelysv/autocommit-cli.git
+cd autocommit-cli
+
+# Set up API Key (Option 1: Export as environment variable)
+export GROQ_API_KEY="YOUR_GROQ_API_KEY"
+
+# OR (Option 2: Create a .env file)
+echo 'GROQ_API_KEY="YOUR_GROQ_API_KEY"' > .env
+# Then load it (e.g., using a tool like `direnv` or manually `source .env`)
+
+# Run the application
+go run cmd/autocommit-cli/main.go
+```
+
+### Building and Installing the Executable
+
+```bash
+# Clone the repository
+git clone https://github.com/urstruelysv/autocommit-cli.git
+cd autocommit-cli
+
+# Run the build script
+chmod +x build.sh
+./build.sh
+```
+
+This will build the application and install it in your `/usr/local/bin` directory.
 
 ---
 
