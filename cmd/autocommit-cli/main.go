@@ -152,6 +152,7 @@ func main() {
 				provider = "openai"
 			}
 		}
+		logg.Info("AI provider: %s", provider)
 
 		var (
 			message string
