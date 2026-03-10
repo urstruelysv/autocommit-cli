@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/urstruelysv/autocommit-cli/internal/logger"
@@ -46,8 +47,8 @@ Diff:
 			{"role": "system", "content": system},
 			{"role": "user", "content": user},
 		},
-		"temperature": 0.2,
-		"max_tokens":  80,
+		"temperature": groqTemperature(),
+		"max_tokens":  groqMaxTokens(),
 	})
 	if err != nil {
 		return "", fmt.Errorf("error marshalling request body: %w", err)
@@ -97,4 +98,24 @@ Diff:
 	}
 
 	return "", fmt.Errorf("no content generated from Groq")
+}
+
+func groqMaxTokens() int {
+	const defaultMax = 80
+	if v := strings.TrimSpace(os.Getenv("GROQ_MAX_TOKENS")); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			return parsed
+		}
+	}
+	return defaultMax
+}
+
+func groqTemperature() float32 {
+	const defaultTemp = 0.2
+	if v := strings.TrimSpace(os.Getenv("GROQ_TEMPERATURE")); v != "" {
+		if parsed, err := strconv.ParseFloat(v, 32); err == nil && parsed >= 0 {
+			return float32(parsed)
+		}
+	}
+	return defaultTemp
 }

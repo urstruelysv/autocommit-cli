@@ -198,6 +198,8 @@ Environment variables:
 * `AI_PROVIDER` — optional; `groq` (default if `GROQ_API_KEY` is set) or `openai`.
 * `GROQ_API_KEY` — required when using Groq.
 * `GROQ_MODEL` — optional; defaults to `llama-3.1-8b-instant`.
+* `GROQ_MAX_TOKENS` — optional; defaults to `80`.
+* `GROQ_TEMPERATURE` — optional; defaults to `0.2`.
 * `OPENAI_API_KEY` — required when using OpenAI.
 * `OPENAI_MODEL` — optional; defaults to `gpt-5-mini`.
 * `AI_FALLBACK` — optional; what to do if OpenAI fails (`basic` or `none`). Defaults to `basic`.
@@ -208,6 +210,8 @@ Example `.env` (Groq default):
 ```bash
 GROQ_API_KEY="YOUR_GROQ_API_KEY"
 GROQ_MODEL="llama-3.1-8b-instant"
+GROQ_MAX_TOKENS="80"
+GROQ_TEMPERATURE="0.2"
 AI_FALLBACK="basic"
 AI_DIFF_MAX_CHARS="8000"
 ```

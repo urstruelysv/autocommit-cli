@@ -146,11 +146,7 @@ func main() {
 
 		provider := strings.ToLower(strings.TrimSpace(os.Getenv("AI_PROVIDER")))
 		if provider == "" {
-			if os.Getenv("GROQ_API_KEY") != "" {
-				provider = "groq"
-			} else {
-				provider = "openai"
-			}
+			provider = "groq"
 		}
 		logg.Info("AI provider: %s", provider)
 
@@ -165,6 +161,9 @@ func main() {
 				logg.Fatal(1, "GROQ_API_KEY not set")
 			}
 			message, err = ai.GenerateGroqCommitMessage(logg, aiInput)
+			if err == nil {
+				logg.Info("AI commit message: %s", message)
+			}
 			if err != nil {
 				fallback := strings.ToLower(strings.TrimSpace(os.Getenv("AI_FALLBACK")))
 				if fallback == "" {
@@ -187,6 +186,9 @@ func main() {
 				logg.Fatal(1, "OPENAI_API_KEY not set")
 			}
 			message, err = ai.GenerateOpenAICommitMessage(logg, aiInput)
+			if err == nil {
+				logg.Info("AI commit message: %s", message)
+			}
 			if err != nil {
 				fallback := strings.ToLower(strings.TrimSpace(os.Getenv("AI_FALLBACK")))
 				if fallback == "" {
