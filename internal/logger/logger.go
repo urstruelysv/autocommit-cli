@@ -16,11 +16,13 @@ type Logger interface {
 }
 
 // HumanReadableLogger implements Logger for human-readable output.
-type HumanReadableLogger struct{}
+type HumanReadableLogger struct {
+	verbose bool
+}
 
 // NewHumanReadableLogger creates a new HumanReadableLogger.
-func NewHumanReadableLogger() *HumanReadableLogger {
-	return &HumanReadableLogger{}
+func NewHumanReadableLogger(verbose bool) *HumanReadableLogger {
+	return &HumanReadableLogger{verbose: verbose}
 }
 
 // Info prints informational messages to stdout.
@@ -43,8 +45,9 @@ func (l *HumanReadableLogger) Fatal(code int, format string, args ...interface{}
 
 // Debug prints debug messages (currently to stdout, can be conditional).
 func (l *HumanReadableLogger) Debug(format string, args ...interface{}) {
-	// For now, debug messages are just info messages.
-	// This can be made conditional based on a verbose flag later.
+	if !l.verbose {
+		return
+	}
 	fmt.Printf("DEBUG: "+format+"\n", args...)
 }
 
@@ -57,11 +60,13 @@ type LogEntry struct {
 }
 
 // JSONLogger implements Logger for JSON output.
-type JSONLogger struct{}
+type JSONLogger struct {
+	verbose bool
+}
 
 // NewJSONLogger creates a new JSONLogger.
-func NewJSONLogger() *JSONLogger {
-	return &JSONLogger{}
+func NewJSONLogger(verbose bool) *JSONLogger {
+	return &JSONLogger{verbose: verbose}
 }
 
 func (l *JSONLogger) logJSON(level string, format string, args ...interface{}) {
@@ -108,6 +113,8 @@ func (l *JSONLogger) Fatal(code int, format string, args ...interface{}) {
 
 // Debug prints debug messages to stdout in JSON format.
 func (l *JSONLogger) Debug(format string, args ...interface{}) {
+	if !l.verbose {
+		return
+	}
 	l.logJSON("debug", format, args...)
 }
-

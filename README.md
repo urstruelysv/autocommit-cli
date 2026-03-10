@@ -80,7 +80,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   **Change Detection:** Automatically detects staged and unstaged changes in a Git repository.
 *   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit. (Note: This is not used when AI-mode is enabled).
 *   **Basic Commit Message Generation:** Generates conventional commit messages (e.g., `fix: apply automatic fixes`) for each logical group, now incorporating module scopes.
-*   **AI-Assisted Commit Message Generation:** (Default) Uses the OpenAI API to generate a single commit message for all changes. This will create a single commit for all the changes and does not perform logical commit grouping.
+*   **AI-Assisted Commit Message Generation:** (Default) Uses the Groq or OpenAI API to generate a single commit message for all changes. This will create a single commit for all the changes and does not perform logical commit grouping.
 *   **Safe Commit & Push:** Stages and commits changes, with safeguards to prevent pushing from a detached HEAD or to a branch without a configured remote. Includes a `--no-push` flag.
 *   **History Learning (Initial):** Extracts potential commit scopes and types from `git log` for future intelligent message generation.
 *   **Interactive Mode Selection:** Prompts the user to select a mode of operation.
@@ -101,7 +101,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 *   Go (version 1.18 or higher recommended)
 *   Git (installed and configured)
-*   **OpenAI API Key:** Set `OPENAI_API_KEY` as an environment variable or in a `.env` file.
+*   **Groq or OpenAI API Key:** Set `GROQ_API_KEY` (Groq) or `OPENAI_API_KEY` (OpenAI) as an environment variable or in a `.env` file.
 
 ### Running from Source (Development)
 
@@ -113,11 +113,17 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 2.  **Set up API Key:**
     ```bash
     # Option 1: Export as environment variable (temporary for current session)
-    export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
+    export GROQ_API_KEY="YOUR_GROQ_API_KEY"
 
     # Option 2: Create a .env file (recommended for local development)
-    echo 'OPENAI_API_KEY="YOUR_OPENAI_API_KEY"' > .env
+    echo 'GROQ_API_KEY="YOUR_GROQ_API_KEY"' > .env
     # Then load it (e.g., using a tool like `direnv` or manually `source .env`)
+    ```
+    **Use OpenAI instead of Groq:**
+    ```bash
+    export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
+    export AI_PROVIDER="openai"
+    export OPENAI_MODEL="gpt-5-mini"
     ```
 3.  **Run the application:**
     ```bash
@@ -186,16 +192,27 @@ autocommit-cli --ci
 
 This will run the application in CI mode, which is non-interactive and deterministic.
 
-### AI Provider (OpenAI)
+### AI Providers (Groq or OpenAI)
 
 Environment variables:
-* `OPENAI_API_KEY` — required.
+* `AI_PROVIDER` — optional; `groq` (default if `GROQ_API_KEY` is set) or `openai`.
+* `GROQ_API_KEY` — required when using Groq.
+* `GROQ_MODEL` — optional; defaults to `llama-3.1-8b-instant`.
+* `OPENAI_API_KEY` — required when using OpenAI.
 * `OPENAI_MODEL` — optional; defaults to `gpt-5-mini`.
 * `AI_FALLBACK` — optional; what to do if OpenAI fails (`basic` or `none`). Defaults to `basic`.
 * `AI_DIFF_MAX_CHARS` — optional; max chars of diff sent to OpenAI (default: `8000`).
 * `OPENAI_MAX_OUTPUT_TOKENS` — optional; max tokens for response (default: `120`).
 
-Example `.env`:
+Example `.env` (Groq default):
+```bash
+GROQ_API_KEY="YOUR_GROQ_API_KEY"
+GROQ_MODEL="llama-3.1-8b-instant"
+AI_FALLBACK="basic"
+AI_DIFF_MAX_CHARS="8000"
+```
+
+Example `.env` (OpenAI):
 ```bash
 OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 OPENAI_MODEL="gpt-5-mini"

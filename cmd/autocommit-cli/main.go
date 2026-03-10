@@ -39,7 +39,7 @@ func printWelcomeMessage() {
 	fmt.Println("Tips:")
 	fmt.Println("  • Press Enter to use AI-Commit (default)")
 	fmt.Println("  • Use --ci for non-interactive mode")
-	fmt.Println("  • Add OPENAI_API_KEY to your .env file\n")
+	fmt.Println("  • Add GROQ_API_KEY or OPENAI_API_KEY to your .env file\n")
 }
 
 type AppMode struct {
@@ -101,10 +101,10 @@ func main() {
 
 	if *ciFlag {
 		appMode = AppMode{CI: true, AICommit: true}
-		logg = logger.NewJSONLogger()
+		logg = logger.NewJSONLogger(false)
 	} else {
 		appMode = promptForMode()
-		logg = logger.NewHumanReadableLogger()
+		logg = logger.NewHumanReadableLogger(appMode.Verbose)
 	}
 
 	logg.Info("autocommit-cli started")
@@ -140,7 +140,14 @@ func main() {
 			return
 		}
 
-		provider := "openai"
+		provider := strings.ToLower(strings.TrimSpace(os.Getenv("AI_PROVIDER")))
+		if provider == "" {
+			if os.Getenv("GROQ_API_KEY") != "" {
+				provider = "groq"
+			} else {
+				provider = "openai"
+			}
+		}
 
 		var (
 			message string
@@ -148,6 +155,28 @@ func main() {
 		)
 
 		switch provider {
+		case "groq":
+			if os.Getenv("GROQ_API_KEY") == "" {
+				logg.Fatal(1, "GROQ_API_KEY not set")
+			}
+			message, err = ai.GenerateGroqCommitMessage(logg, aiInput)
+			if err != nil {
+				fallback := strings.ToLower(strings.TrimSpace(os.Getenv("AI_FALLBACK")))
+				if fallback == "" {
+					fallback = "basic"
+				}
+
+				switch fallback {
+				case "basic":
+					logg.Info("Groq failed; falling back to basic commit message")
+					message = "chore: update changes"
+					err = nil
+				case "none":
+					// Keep original error handling below.
+				default:
+					logg.Fatal(1, "Unknown AI_FALLBACK: %s (use basic or none)", fallback)
+				}
+			}
 		case "openai", "chatgpt":
 			if os.Getenv("OPENAI_API_KEY") == "" {
 				logg.Fatal(1, "OPENAI_API_KEY not set")
@@ -171,7 +200,7 @@ func main() {
 				}
 			}
 		default:
-			logg.Fatal(1, "Unknown AI provider: %s (use openai)", provider)
+			logg.Fatal(1, "Unknown AI provider: %s (use groq or openai)", provider)
 		}
 
 		if err != nil {
