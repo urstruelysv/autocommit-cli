@@ -1,23 +1,16 @@
 package ai
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/urstruelysv/autocommit-cli/internal/logger"
 )
 
-const (
-	geminiAPIURL   = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%s"
-	maxRetries     = 5
-	initialBackoff = 2 * time.Second
-)
+const geminiAPIURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=%s"
 
 // GenerateAICommitMessage uses the Gemini API (via HTTP POST) to generate a commit message based on the provided diff.
 func GenerateAICommitMessage(log logger.Logger, diff string) (string, error) {
@@ -53,7 +46,9 @@ Diff:
 		return "", fmt.Errorf("error marshalling request body: %w", err)
 	}
 
-	resp, err := postWithRetry(log, url, requestBody)
+	resp, err := postWithRetry(log, url, map[string]string{
+		"Content-Type": "application/json",
+	}, requestBody)
 	if err != nil {
 		return "", err
 	}
@@ -89,35 +84,4 @@ Diff:
 	return "", fmt.Errorf("no content generated from Gemini")
 }
 
-// postWithRetry sends a POST request with a retry mechanism for rate limiting.
-func postWithRetry(log logger.Logger, url string, body []byte) (*http.Response, error) {
-	var resp *http.Response
-	var err error
-	backoff := initialBackoff
-
-	for i := 0; i < maxRetries; i++ {
-		log.Debug("Making API request (attempt %d)", i+1)
-		resp, err = http.Post(url, "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			return nil, fmt.Errorf("error making API request: %w", err)
-		}
-
-		if resp.StatusCode == http.StatusOK {
-			return resp, nil
-		}
-
-		if resp.StatusCode == http.StatusTooManyRequests {
-			resp.Body.Close()
-			log.Info("Rate limit exceeded. Retrying in %v...", backoff)
-			time.Sleep(backoff)
-			backoff *= 2
-			continue
-		}
-
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
-		return nil, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
-	}
-
-	return nil, fmt.Errorf("exceeded max retries")
-}
+ 

@@ -80,7 +80,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 *   **Change Detection:** Automatically detects staged and unstaged changes in a Git repository.
 *   **Logical Commit Grouping:** Groups detected changes into logical categories (e.g., `feat`, `fix`, `test`, `docs`, `chore`) based on file paths, diff content, and **folder/module structure (e.g., `fix(git):`)**. Each group results in a separate commit. (Note: This is not used when AI-mode is enabled).
 *   **Basic Commit Message Generation:** Generates conventional commit messages (e.g., `fix: apply automatic fixes`) for each logical group, now incorporating module scopes.
-*   **AI-Assisted Commit Message Generation:** (Default) Uses the Gemini API to generate a single commit message for all changes. This will create a single commit for all the changes and does not perform logical commit grouping.
+*   **AI-Assisted Commit Message Generation:** (Default) Uses the Gemini or OpenAI API to generate a single commit message for all changes. This will create a single commit for all the changes and does not perform logical commit grouping.
 *   **Safe Commit & Push:** Stages and commits changes, with safeguards to prevent pushing from a detached HEAD or to a branch without a configured remote. Includes a `--no-push` flag.
 *   **History Learning (Initial):** Extracts potential commit scopes and types from `git log` for future intelligent message generation.
 *   **Interactive Mode Selection:** Prompts the user to select a mode of operation.
@@ -101,7 +101,7 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
 
 *   Go (version 1.18 or higher recommended)
 *   Git (installed and configured)
-*   **Gemini API Key:** Obtain a free API key from [Google AI Studio](https://aistudio.google.com/). Set it as an environment variable `GEMINI_API_KEY` or in a `.env` file.
+*   **Gemini or OpenAI API Key:** Set `GEMINI_API_KEY` (Gemini) or `OPENAI_API_KEY` (OpenAI) as an environment variable or in a `.env` file. Use `AI_PROVIDER=openai` to switch to OpenAI.
 
 ### Running from Source (Development)
 
@@ -118,6 +118,13 @@ There is no **simple, intelligent, fully-automated, and install-anywhere** solut
     # Option 2: Create a .env file (recommended for local development)
     echo 'GEMINI_API_KEY="YOUR_GEMINI_API_KEY"' > .env
     # Then load it (e.g., using a tool like `direnv` or manually `source .env`)
+    ```
+    **Use OpenAI instead of Gemini:**
+    ```bash
+    export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
+    export AI_PROVIDER="openai"
+    # Optional: pick a model (defaults to gpt-5-mini)
+    export OPENAI_MODEL="gpt-5-mini"
     ```
 3.  **Run the application:**
     ```bash
@@ -185,6 +192,27 @@ autocommit-cli --ci
 ```
 
 This will run the application in CI mode, which is non-interactive and deterministic.
+
+### AI Providers
+
+By default, AI-Commit uses Gemini. To use OpenAI (ChatGPT), set `AI_PROVIDER=openai`.
+
+Environment variables:
+* `GEMINI_API_KEY` — required when `AI_PROVIDER` is unset or set to `gemini`.
+* `OPENAI_API_KEY` — required when `AI_PROVIDER=openai`.
+* `OPENAI_MODEL` — optional; defaults to `gpt-5-mini`.
+
+Example `.env` for Gemini (default):
+```bash
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+```
+
+Example `.env` for OpenAI:
+```bash
+OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
+AI_PROVIDER="openai"
+OPENAI_MODEL="gpt-5-mini"
+```
 
 ### Examples
 

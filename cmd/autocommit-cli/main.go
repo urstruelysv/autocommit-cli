@@ -26,12 +26,12 @@ func printWelcomeMessage() {
 	reset := "\033[0m"
 
 	ascii := `
- █████╗ ██╗   ██╗████████╗ ██████╗  ██████╗ ██████╗ ███╗   ███╗██╗████████╗
-██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗██╔════╝██╔═══██╗████╗ ████║██║╚══██╔══╝
-███████║██║   ██║   ██║   ██║   ██║██║     ██║   ██║██╔████╔██║██║   ██║
-██╔══██║██║   ██║   ██║   ██║   ██║██║     ██║   ██║██║╚██╔╝██║██║   ██║
-██║  ██║╚██████╔╝   ██║   ╚██████╔╝╚██████╗╚██████╔╝██║ ╚═╝ ██║██║   ██║
-╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝   ╚═╝
+ █████╗ ██╗   ██╗████████╗ ██████╗  ██████╗ ██████╗ ███╗   ███╗███╗   ███╗██╗████████╗
+██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗██╔════╝██╔═══██╗████╗ ████║████╗ ████║██║╚══██╔══╝
+███████║██║   ██║   ██║   ██║   ██║██║     ██║   ██║██╔████╔██║██╔████╔██║██║   ██║
+██╔══██║██║   ██║   ██║   ██║   ██║██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██║   ██║
+██║  ██║╚██████╔╝   ██║   ╚██████╔╝╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║██║   ██║
+╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚═╝   ╚═╝
 `
 
 	fmt.Printf("%s%s%s\n", brightRed, ascii, reset)
@@ -39,7 +39,8 @@ func printWelcomeMessage() {
 	fmt.Println("Tips:")
 	fmt.Println("  • Press Enter to use AI-Commit (default)")
 	fmt.Println("  • Use --ci for non-interactive mode")
-	fmt.Println("  • Add GEMINI_API_KEY to your .env file\n")
+	fmt.Println("  • Add GEMINI_API_KEY or OPENAI_API_KEY to your .env file")
+	fmt.Println("  • Set AI_PROVIDER=openai to use OpenAI models\n")
 }
 
 type AppMode struct {
@@ -129,11 +130,31 @@ func main() {
 	}
 
 	if appMode.AICommit {
-		if os.Getenv("GEMINI_API_KEY") == "" {
-			logg.Fatal(1, "GEMINI_API_KEY not set")
+		provider := strings.ToLower(strings.TrimSpace(os.Getenv("AI_PROVIDER")))
+		if provider == "" {
+			provider = "gemini"
 		}
 
-		message, err := ai.GenerateAICommitMessage(logg, changes)
+		var (
+			message string
+			err     error
+		)
+
+		switch provider {
+		case "gemini":
+			if os.Getenv("GEMINI_API_KEY") == "" {
+				logg.Fatal(1, "GEMINI_API_KEY not set")
+			}
+			message, err = ai.GenerateAICommitMessage(logg, changes)
+		case "openai", "chatgpt":
+			if os.Getenv("OPENAI_API_KEY") == "" {
+				logg.Fatal(1, "OPENAI_API_KEY not set")
+			}
+			message, err = ai.GenerateOpenAICommitMessage(logg, changes)
+		default:
+			logg.Fatal(1, "Unknown AI_PROVIDER: %s (use gemini or openai)", provider)
+		}
+
 		if err != nil {
 			logg.Fatal(1, "AI commit failed: %v", err)
 		}
