@@ -104,6 +104,10 @@ func main() {
 		logg = logger.NewJSONLogger(false)
 	} else {
 		appMode = promptForMode()
+		// Safety net: ensure Enter defaults to AI-Commit.
+		if !appMode.AICommit && !appMode.Review && !appMode.NoPush && !appMode.Verbose {
+			appMode.AICommit = true
+		}
 		logg = logger.NewHumanReadableLogger(appMode.Verbose)
 	}
 
