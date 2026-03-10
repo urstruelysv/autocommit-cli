@@ -39,8 +39,7 @@ func printWelcomeMessage() {
 	fmt.Println("Tips:")
 	fmt.Println("  • Press Enter to use AI-Commit (default)")
 	fmt.Println("  • Use --ci for non-interactive mode")
-	fmt.Println("  • Add GEMINI_API_KEY or OPENAI_API_KEY to your .env file")
-	fmt.Println("  • Set AI_PROVIDER=openai to use OpenAI models\n")
+	fmt.Println("  • Add OPENAI_API_KEY to your .env file\n")
 }
 
 type AppMode struct {
@@ -130,10 +129,16 @@ func main() {
 	}
 
 	if appMode.AICommit {
-		provider := strings.ToLower(strings.TrimSpace(os.Getenv("AI_PROVIDER")))
-		if provider == "" {
-			provider = "gemini"
+		aiInput, diffErr := git.GetDiffForAI(logg)
+		if diffErr != nil {
+			logg.Fatal(1, "Diff collection failed: %v", diffErr)
 		}
+		if strings.TrimSpace(aiInput) == "" {
+			logg.Info("No diff content available for AI.")
+			return
+		}
+
+		provider := "openai"
 
 		var (
 			message string
@@ -141,18 +146,30 @@ func main() {
 		)
 
 		switch provider {
-		case "gemini":
-			if os.Getenv("GEMINI_API_KEY") == "" {
-				logg.Fatal(1, "GEMINI_API_KEY not set")
-			}
-			message, err = ai.GenerateAICommitMessage(logg, changes)
 		case "openai", "chatgpt":
 			if os.Getenv("OPENAI_API_KEY") == "" {
 				logg.Fatal(1, "OPENAI_API_KEY not set")
 			}
-			message, err = ai.GenerateOpenAICommitMessage(logg, changes)
+			message, err = ai.GenerateOpenAICommitMessage(logg, aiInput)
+			if err != nil {
+				fallback := strings.ToLower(strings.TrimSpace(os.Getenv("AI_FALLBACK")))
+				if fallback == "" {
+					fallback = "basic"
+				}
+
+				switch fallback {
+				case "basic":
+					logg.Info("OpenAI failed; falling back to basic commit message")
+					message = "chore: update changes"
+					err = nil
+				case "none":
+					// Keep original error handling below.
+				default:
+					logg.Fatal(1, "Unknown AI_FALLBACK: %s (use basic or none)", fallback)
+				}
+			}
 		default:
-			logg.Fatal(1, "Unknown AI_PROVIDER: %s (use gemini or openai)", provider)
+			logg.Fatal(1, "Unknown AI provider: %s (use openai)", provider)
 		}
 
 		if err != nil {

@@ -2,7 +2,9 @@ package git
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/urstruelysv/autocommit-cli/internal/logger"
@@ -53,6 +55,62 @@ func DetectChanges(log logger.Logger) (string, error) {
 		log.Info("No changes found.")
 	}
 	return changes, nil
+}
+
+// GetDiffForAI returns a richer diff for AI prompts, including staged/unstaged diffs and untracked files list.
+func GetDiffForAI(log logger.Logger) (string, error) {
+	log.Debug("Collecting diff for AI...")
+
+	var parts []string
+
+	unstagedCmd := exec.Command("git", "diff", "--no-color")
+	unstagedOut, err := unstagedCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("error getting unstaged diff: %w", err)
+	}
+	if len(unstagedOut) > 0 {
+		parts = append(parts, "UNSTAGED DIFF:\n"+string(unstagedOut))
+	}
+
+	stagedCmd := exec.Command("git", "diff", "--cached", "--no-color")
+	stagedOut, err := stagedCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("error getting staged diff: %w", err)
+	}
+	if len(stagedOut) > 0 {
+		parts = append(parts, "STAGED DIFF:\n"+string(stagedOut))
+	}
+
+	untrackedCmd := exec.Command("git", "ls-files", "--others", "--exclude-standard")
+	untrackedOut, err := untrackedCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("error getting untracked files: %w", err)
+	}
+	untracked := strings.TrimSpace(string(untrackedOut))
+	if untracked != "" {
+		parts = append(parts, "UNTRACKED FILES:\n"+untracked+"\n")
+	}
+
+	if len(parts) == 0 {
+		return "", nil
+	}
+
+	diff := strings.Join(parts, "\n")
+
+	maxChars := 8000
+	if v := strings.TrimSpace(os.Getenv("AI_DIFF_MAX_CHARS")); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			maxChars = parsed
+		}
+	}
+
+	if maxChars > 0 && len(diff) > maxChars {
+		keepHead := maxChars / 2
+		keepTail := maxChars - keepHead
+		diff = diff[:keepHead] + "\n... [diff truncated] ...\n" + diff[len(diff)-keepTail:]
+	}
+
+	return diff, nil
 }
 
 func CommitChanges(log logger.Logger, message string, files []string) error {

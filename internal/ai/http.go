@@ -18,8 +18,6 @@ const (
 
 // postWithRetry sends a POST request with a retry mechanism for rate limiting.
 func postWithRetry(log logger.Logger, url string, headers map[string]string, body []byte) (*http.Response, error) {
-	var resp *http.Response
-	var err error
 	backoff := initialBackoff
 
 	client := &http.Client{Timeout: requestTimeout}
@@ -35,7 +33,7 @@ func postWithRetry(log logger.Logger, url string, headers map[string]string, bod
 			req.Header.Set(k, v)
 		}
 
-		resp, err = client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("error making API request: %w", err)
 		}

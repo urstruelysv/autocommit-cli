@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/urstruelysv/autocommit-cli/internal/logger"
@@ -40,8 +41,9 @@ Diff:
 	log.Debug("Prompt:\n%s", prompt)
 
 	requestBody, err := json.Marshal(map[string]interface{}{
-		"model": model,
-		"input": prompt,
+		"model":              model,
+		"input":              prompt,
+		"max_output_tokens":  maxOutputTokens(),
 	})
 	if err != nil {
 		return "", fmt.Errorf("error marshalling request body: %w", err)
@@ -102,4 +104,14 @@ Diff:
 	}
 
 	return "", fmt.Errorf("no content generated from OpenAI")
+}
+
+func maxOutputTokens() int {
+	const defaultMax = 120
+	if v := strings.TrimSpace(os.Getenv("OPENAI_MAX_OUTPUT_TOKENS")); v != "" {
+		if parsed, err := strconv.Atoi(v); err == nil && parsed > 0 {
+			return parsed
+		}
+	}
+	return defaultMax
 }
